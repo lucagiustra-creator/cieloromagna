@@ -145,6 +145,21 @@ function riversLine() {
     + over.length + " " + (over.length === 1 ? "stazione" : "stazioni") + ")";
 }
 
+// fase della luna dal ciclo medio (29,53 giorni) a partire da una luna nuova nota: precisione di qualche ora, basta per il messaggio
+function moon(date = new Date()) {
+  const SYN = 29.530588853, NEW = Date.UTC(2000, 0, 6, 18, 14);
+  const age = (((date - NEW) / 864e5) % SYN + SYN) % SYN, f = age / SYN;
+  const lit = Math.round((1 - Math.cos(2 * Math.PI * f)) / 2 * 100);
+  // le fasi principali valgono un giorno prima e uno dopo; in mezzo crescente, gibbosa, calante
+  const Q = SYN / 4, near = t => Math.abs(age - t) < 1;
+  const [icon, name] = age < 1 || age > SYN - 1 ? ["🌑", "luna nuova"] : near(Q) ? ["🌓", "primo quarto"] : near(2 * Q) ? ["🌕", "luna piena"]
+    : near(3 * Q) ? ["🌗", "ultimo quarto"] : age < Q ? ["🌒", "luna crescente"] : age < 2 * Q ? ["🌔", "luna gibbosa crescente"]
+    : age < 3 * Q ? ["🌖", "luna gibbosa calante"] : ["🌘", "luna calante"];
+  const toFull = Math.round((SYN / 2 - age + SYN) % SYN), toNew = Math.round(SYN - age);
+  const next = name === "luna piena" || name === "luna nuova" ? "" : toFull <= toNew ? `, piena tra ${toFull} ${toFull === 1 ? "giorno" : "giorni"}` : `, nuova tra ${toNew} ${toNew === 1 ? "giorno" : "giorni"}`;
+  return `${icon} ${name[0].toUpperCase() + name.slice(1)} (${lit}%)${next}`;
+}
+
 const oggi = GROUPS.map(([g]) => group(g, 0, Math.min(nowHour, 21)));
 const domani = GROUPS.map(([g]) => group(g, 1, 0));
 const ref = OM[PLACES.findIndex(p => p.id === "forli")]?.daily ?? OM[0].daily;
@@ -165,6 +180,7 @@ const text = [
   "⚠️ <b>Allerte</b>: " + alertsLine(),
   "🌊 <b>Fiumi</b>: " + riversLine(),
   "🌅 Alba " + ref.sunrise[0].slice(11, 16) + " · tramonto " + ref.sunset[0].slice(11, 16),
+  moon(),
   "",
   '👉 <a href="https://' + SITE + '/">Le previsioni per la tua località su ' + SITE + "</a>"
 ].filter((l, i) => !(i === 0 && l === "")).join("\n");
