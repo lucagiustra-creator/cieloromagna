@@ -1,0 +1,51 @@
+name: Pubblica sito e dati ARPAE
+
+# Ogni 15 minuti scarica allerte e livelli dei fiumi da Allerta Meteo ER e ripubblica il sito con dati.json accanto;
+# gira anche a ogni push su main, così le modifiche alla pagina vanno online subito.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Scarica allerte e livelli da ARPAE
+        id: dati
+        continue-on-error: true          # il sito va online lo stesso, con l'ultimo dato buono
+        run: node scripts/dati.mjs
+      - name: Prepara il sito
+        run: |
+          mkdir _site
+          cp -r index.html assets _site/
+          if [ -f dati.json ]; then cp dati.json _site/; fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+      - name: Segnala dati fermi
+        if: steps.dati.outcome == 'failure'
+        run: |
+          echo "::error::I livelli ARPAE sono fermi da più di due ore (vedi il passo 'Scarica allerte e livelli')"
+          exit 1

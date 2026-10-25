@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 2 60 60"><title>Cielo Romagna</title>
+  
+  <g>
+    <rect width="64" height="64" fill="#a9d6f2"/>
+    <circle cx="41" cy="23" r="10.5" fill="#f2a33a"/>
+    <path d="M13.5 33h16a5 5 0 0 0 0-10 7.5 7.5 0 0 0-14.3-1.6A5.3 5.3 0 0 0 13.5 33z" fill="#fff"/>
+    <path d="M0 40Q16 34 32 40T64 40V64H0Z" fill="#4a97d4"/>
+    <path d="M0 47.5Q16 41.5 32 47.5T64 47.5V64H0Z" fill="#2c74b6"/>
+    <path d="M0 55Q16 49 32 55T64 55V64H0Z" fill="#1d5492"/>
+    <circle cx="22" cy="48.5" r="2.7" fill="#b4532a" stroke="#fff" stroke-width="1.4"/>
+  </g>
+</svg>
