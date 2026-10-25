@@ -13,7 +13,7 @@
 <meta property="og:image" content="https://cieloromagna.it/assets/logo/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Cielo Romagna: allerte, radar, fiumi e previsioni dalla costa all’Appennino">
+<meta property="og:image:alt" content="Cielo Romagna: previsioni, radar, allerte e fiumi dalla costa all’Appennino">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0c0f">
@@ -29,7 +29,7 @@
    sotto tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
    Colori: ruggine solo per l'interfaccia (navigazione, bottoni, etichette); colori meteo solo per le condizioni
    (pioggia blu, sole ocra); scala del rischio verde-giallo-arancione-rosso solo per allerte e fiumi; temperature neutre.
-   Identità: logo con sole e fiumi (assets/logo), ruggine delle tele stampate romagnole, fregio a grappoli e foglie,
+   Identità: logo con sole e fiumi (assets/logo), ruggine delle tele stampate romagnole,
    Fraunces per i titoli (in assets/fonts, licenza OFL). Tema scuro o chiaro secondo il dispositivo;
    in testata un cielo che segue ora e tempo della località scelta. */
 @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap; src: url("assets/fonts/fraunces-latin-700-normal.woff2") format("woff2"); }
@@ -142,8 +142,6 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .abanner span { color: rgba(255,255,255,.9); font-size: .94rem; }
 .abanner em { margin-left: auto; font-style: normal; font-weight: 600; font-size: .86rem; white-space: nowrap; }
 
-/* ---------- Fregio a grappoli e foglie, come le tele stampate a ruggine ---------- */
-.fregio { height: 24px; opacity: .8; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='24'%3E%3Cg fill='none' stroke='%23b4532a' stroke-width='1.3'%3E%3Cpath d='M0 1.5h56M0 22.5h56'/%3E%3Cpath d='M42 5l6 7-6 7-6-7z'/%3E%3Cpath d='M42 7v10' stroke-width='.9'/%3E%3Cpath d='M14 4.5c0-1.6 1.5-2 2.6-1.4'/%3E%3C/g%3E%3Cg fill='%23b4532a'%3E%3Ccircle cx='10' cy='8' r='2.2'/%3E%3Ccircle cx='14.5' cy='8' r='2.2'/%3E%3Ccircle cx='19' cy='8' r='2.2'/%3E%3Ccircle cx='12.2' cy='12.2' r='2.2'/%3E%3Ccircle cx='16.8' cy='12.2' r='2.2'/%3E%3Ccircle cx='14.5' cy='16.4' r='2.2'/%3E%3Ccircle cx='28' cy='12' r='1.3'/%3E%3Ccircle cx='55' cy='12' r='1.3'/%3E%3C/g%3E%3C/svg%3E") repeat-x center; }
 
 /* ---------- Card e bottoni ---------- */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0; box-shadow: var(--shadow); }
@@ -163,7 +161,7 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .stamp a { color: var(--ink-soft); }
 
 /* ---------- Riepilogo della località ---------- */
-.sum { margin-top: 24px; padding: 0; overflow: hidden; }
+.sum { margin-top: 8px; padding: 0; overflow: hidden; }
 .sum-q { padding: 16px 18px 4px; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
 .sday { display: grid; grid-template-columns: 74px auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 18px; }
 .sday + .sday { border-top: 1px dashed var(--line); }
@@ -394,8 +392,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .mi { width: 11px; height: 11px; vertical-align: -1px; margin-right: 3px; }
 @media (max-width: 900px) { .days { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; } .dcard { flex: 0 0 136px; scroll-snap-align: start; } }
 
-.foot { margin-top: 72px; padding: 0 0 40px; color: var(--ink-faint); font-size: .75rem; line-height: 1.6; }
-.foot .fregio { margin-bottom: 22px; }
+.foot { margin-top: 72px; padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .75rem; line-height: 1.6; }
 .foot p { margin: 0 0 10px; }
 .foot a { color: var(--ink-soft); }
 .foot .warn-note { color: var(--ink-soft); font-size: .82rem; }
@@ -444,7 +441,6 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 </div>
 
 <main class="container">
-  <div class="fregio" aria-hidden="true"></div>
   <p class="card tip" id="installTip" hidden>Su iPhone: tocca <b>Condividi</b> e poi <b>Aggiungi alla schermata Home</b>. Cielo Romagna si aprirà come un'app, sulla tua località.</p>
 
   <section class="card sum" id="riepilogo" aria-live="polite">
@@ -593,7 +589,6 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
   </section>
 
   <footer class="foot">
-    <div class="fregio" aria-hidden="true"></div>
     <p class="warn-note"><b>Cielo Romagna non è un servizio ufficiale.</b> È un progetto personale e non commerciale che mette insieme dati pubblici: previsioni e livelli possono essere sbagliati o in ritardo. Per allerte e decisioni fa fede <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo Emilia-Romagna</a>; in emergenza chiama il 112.</p>
     <p>Allerte e livelli idrometrici: <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo Emilia-Romagna</a> (ARPAE e Agenzia regionale per la sicurezza territoriale e la protezione civile), licenza <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>, ripresi ogni 15 minuti e rielaborati in grafici e riepiloghi; i nomi delle zone sono descrittivi, i codici sono quelli ufficiali ·
     Previsioni: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) con i modelli ICON-2I di ItaliaMeteo-ARPAE, ICON-D2 di DWD, AROME di Météo-France ed ECMWF ·
