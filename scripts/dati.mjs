@@ -79,6 +79,8 @@ let prev = null;
 try { prev = await json(PREV_URL); } catch { /* primo giro o sito non raggiungibile */ }
 
 const out = { fonte: "Allerta Meteo Emilia-Romagna", scaricato: Date.now() };
+// memoria degli avvisi Telegram già mandati: la aggiorna scripts/avvisi.mjs, qui si conserva se quel passo fallisce
+if (prev?.avvisi) out.avvisi = prev.avvisi;
 let problems = 0;
 
 for (const [key, ep] of [["oggi", "get-stato-allerta"], ["domani", "get-stato-allerta-domani"]]) {

@@ -34,6 +34,13 @@ jobs:
         id: dati
         continue-on-error: true          # il sito va online lo stesso, con l'ultimo dato buono
         run: node scripts/dati.mjs
+      - name: Avvisi Telegram (allerte nuove o più gravi, fiumi oltre soglia)
+        if: hashFiles('dati.json') != ''
+        continue-on-error: true          # se Telegram non risponde il sito si aggiorna lo stesso
+        run: node scripts/avvisi.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
       - name: Prepara il sito
         run: |
           mkdir _site

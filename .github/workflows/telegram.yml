@@ -1,8 +1,12 @@
 name: Messaggio Telegram
 
-# Messaggio del mattino nel canale Telegram. Per ora solo a mano (prova); la schedule delle 7 si attiva dopo l'ok.
+# Messaggio del mattino nel canale Telegram alle 7 italiane: gira alle 5 e alle 6 UTC e lo script invia solo
+# da quella giusta per l'ora legale. A mano si può lanciare in modo "prova".
 # Il token del bot sta nel secret TELEGRAM_BOT_TOKEN; il canale nella variabile TELEGRAM_CHAT (se manca lo trova lo script).
 on:
+  schedule:
+    - cron: "0 5 * * *"
+    - cron: "0 6 * * *"
   workflow_dispatch:
     inputs:
       modo:
