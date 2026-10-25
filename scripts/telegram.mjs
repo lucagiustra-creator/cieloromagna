@@ -49,65 +49,124 @@ const listIt = a => a.length <= 1 ? (a[0] ?? "") : a.slice(0, -1).join(", ") + "
 
 const om = await (await fetch("https://api.open-meteo.com/v1/forecast?" + new URLSearchParams({
   latitude: PLACES.map(p => p.lat).join(","), longitude: PLACES.map(p => p.lon).join(","), timezone: "Europe/Rome", forecast_days: 2,
-  daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max"
+  hourly: "precipitation_probability,precipitation,weather_code",
+  daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_gusts_10m_max,sunrise,sunset"
 }))).json();
-const daily = (Array.isArray(om) ? om : [om]).map(x => x.daily);
+const OM = Array.isArray(om) ? om : [om];
 const dati = await (await fetch(DATI_URL + "?t=" + Date.now())).json().catch(() => null);
 
-// per ogni gruppo di località: pioverà? (sì / forse / no) e la forbice di massime e minime
-function groupDay(g, k) {
-  const ds = PLACES.map((p, i) => ({ p, d: daily[i] })).filter(x => x.p.group === g);
-  const prob = Math.max(...ds.map(x => x.d.precipitation_probability_max[k] ?? 0));
-  const mm = Math.max(...ds.map(x => x.d.precipitation_sum[k] ?? 0));
-  const codes = ds.map(x => x.d.weather_code[k]);
-  const wet = ds.filter(x => (x.d.precipitation_sum[k] ?? 0) >= 1 || (x.d.precipitation_probability_max[k] ?? 0) >= 60);
-  const mx = ds.map(x => Math.round(x.d.temperature_2m_max[k])), mn = ds.map(x => Math.round(x.d.temperature_2m_min[k]));
-  const span = a => Math.min(...a) === Math.max(...a) ? `${a[0]}°` : `${Math.min(...a)}–${Math.max(...a)}°`;
-  const t = `max ${span(mx)} · min ${span(mn)}`;
-  const what = codes.some(c => c >= 95) ? "temporali" : codes.some(c => (c >= 71 && c <= 77) || c === 85 || c === 86) ? "neve" : "pioggia";
-  let ans;
-  if (wet.length) ans = `<b>sì</b>, ${what}${wet.length < ds.length ? " a " + listIt(wet.map(x => x.p.name)) : ""} (fino al ${prob}%)`;
-  else if (prob >= 30 || mm >= 0.3) ans = `<b>forse</b> (${prob}%)`;
-  else ans = "no";
-  return `${ans} · ${t}`;
+const SNOW = c => (c >= 71 && c <= 77) || c === 85 || c === 86;
+const FOG = c => c === 45 || c === 48;
+const PERIODS = [[0, 6, "di notte"], [6, 12, "al mattino"], [12, 18, "nel pomeriggio"], [18, 24, "in serata"]];
+const WHERE = { costa: "sulla costa", pianura: "in pianura", collina: "in collina" };
+const nowHour = +new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hourCycle: "h23" }).format(new Date());
+// icona del gruppo: il tempo più "importante" tra le località (pioggia e simili prima del cielo)
+function emoji(codes, wet) {
+  if (codes.some(c => c >= 95)) return "⛈";
+  if (codes.some(SNOW)) return "🌨";
+  if (wet) return "🌧";
+  const n = f => codes.filter(f).length;
+  if (n(FOG) * 2 >= codes.length) return "🌫";
+  if (n(c => c === 3) * 2 >= codes.length) return "☁️";
+  if (n(c => c <= 1) * 2 >= codes.length) return "☀️";
+  return "⛅";
 }
 
-function alertsLine(day) {
-  const zone = dati?.[day]?.zone ?? [];
-  const hot = zone.map(z => ({ z, ev: Object.entries(z.eventi).filter(([, c]) => RANK[c] > 0) })).filter(x => x.ev.length);
-  if (!dati?.[day]) return "dato non disponibile, guarda allertameteo.regione.emilia-romagna.it";
-  if (!hot.length) return `${DOT[0]} nessuna allerta ${day}`;
-  const worst = Math.max(...hot.flatMap(x => x.ev.map(([, c]) => RANK[c])));
-  const ev = [...new Set(hot.flatMap(x => x.ev.filter(([, c]) => RANK[c] === worst).map(([e]) => EVENTS[e] ?? e)))];
-  const zn = hot.filter(x => x.ev.some(([, c]) => RANK[c] === worst)).map(x => ZONES[x.z.area] ?? x.z.area);
-  return `${DOT[worst]} <b>allerta ${COLOR[worst]} ${day}</b>: ${esc(listIt(ev))} (${esc(listIt(zn))})`;
+// le città nel messaggio, una riga ciascuna; costa, pianura e collina restano nella frase di riassunto
+const CITIES = ["rimini", "ravenna", "cesena", "forli", "faenza", "imola"];
+
+// una o più località in un giorno (k = 0 oggi, 1 domani), dall'ora "from" in poi
+const group = (g, k, from) => info(p => p.group === g, k, from, g);
+function info(pick, k, from, g) {
+  const ps = PLACES.map((p, i) => ({ p, o: OM[i] })).filter(x => pick(x.p));
+  const date = ps[0].o.daily.time[k];
+  const hours = ps.map(x => x.o.hourly.time.map((t, j) => ({ t, j })).filter(q => q.t.startsWith(date) && +q.t.slice(11, 13) >= from)
+    .map(({ t, j }) => ({ h: +t.slice(11, 13), prob: x.o.hourly.precipitation_probability[j] ?? 0, mm: x.o.hourly.precipitation[j] ?? 0, code: x.o.hourly.weather_code[j] })));
+  // un periodo è piovoso se piove in almeno un terzo delle località del gruppo
+  const per = PERIODS.map(([a, b, label]) => {
+    const each = hours.map(l => l.filter(q => q.h >= a && q.h < b)).filter(l => l.length);
+    if (!each.length) return null;
+    const wet = each.filter(l => Math.max(...l.map(q => q.prob)) >= 50 || l.reduce((s, q) => s + q.mm, 0) >= 1).length;
+    return { label, wet: wet * 3 >= each.length, maybe: each.some(l => Math.max(...l.map(q => q.prob)) >= 30), prob: Math.max(...each.flat().map(q => q.prob)) };
+  }).filter(Boolean);
+  const codes = hours.flat().map(q => q.code);
+  const wetP = per.filter(p => p.wet), maybeP = per.filter(p => p.maybe);
+  const fogMorning = hours.filter(l => l.some(q => q.h >= 5 && q.h < 12 && FOG(q.code))).length * 2 >= ps.length;
+  const tmax = Math.max(...ps.map(x => Math.round(x.o.daily.temperature_2m_max[k])));
+  const tmin = Math.min(...ps.map(x => Math.round(x.o.daily.temperature_2m_min[k])));
+  const gust = Math.max(...ps.map(x => x.o.daily.wind_gusts_10m_max[k] ?? 0));
+  const what = codes.some(c => c >= 95) ? "temporali" : codes.some(SNOW) ? "neve" : "pioggia";
+  let text;
+  if (wetP.length) {
+    const when = wetP.length === per.length && per.length > 2 ? "per gran parte della giornata" : listIt(wetP.map(p => p.label));
+    text = what + " " + when + " (fino al " + Math.max(...wetP.map(p => p.prob)) + "%)";
+  } else if (maybeP.length) {
+    text = "qualche pioggia possibile " + listIt(maybeP.map(p => p.label)) + " (" + Math.max(...maybeP.map(p => p.prob)) + "%)";
+  } else text = "asciutto";
+  const extra = [fogMorning && !wetP.length ? "nebbia al mattino" : "", tmin <= 0 ? "gelate" : tmin <= 2 ? "possibili brinate" : "",
+    gust >= 50 ? "raffiche fino a " + Math.round(gust) + " km/h" : ""].filter(Boolean);
+  return { g, wet: wetP.length > 0, maybe: !wetP.length && maybeP.length > 0, what, periods: wetP.map(p => p.label), fog: fogMorning,
+    icon: emoji(codes, wetP.length > 0), text: [text, ...extra].join(", "), tmax, tmin };
+}
+
+// frase di riassunto della giornata su tutta la Romagna
+function summary(gs) {
+  const wet = gs.filter(x => x.wet), maybe = gs.filter(x => x.maybe), fog = gs.filter(x => x.fog && !x.wet);
+  if (wet.length) {
+    const what = wet.some(x => x.what === "temporali") ? "Temporali" : wet.some(x => x.what === "neve") ? "Neve" : "Pioggia";
+    const when = [...new Set(wet.flatMap(x => x.periods))];
+    return what + " " + (wet.length === gs.length ? "su tutta la Romagna" : listIt(wet.map(x => WHERE[x.g])))
+      + (when.length && when.length < 3 ? ", soprattutto " + listIt(when) : "") + ".";
+  }
+  if (maybe.length) return "Qualche pioggia possibile " + listIt(maybe.map(x => WHERE[x.g])) + ", per il resto asciutto.";
+  return "Giornata asciutta" + (fog.length ? ", con nebbia al mattino " + listIt(fog.map(x => WHERE[x.g])) : "") + ".";
+}
+
+function alertsLine() {
+  if (!dati?.oggi) return "dato non disponibile, guarda allertameteo.regione.emilia-romagna.it";
+  const parts = ["oggi", "domani"].map(day => {
+    const hot = (dati[day]?.zone ?? []).map(z => ({ z, ev: Object.entries(z.eventi).filter(([, c]) => RANK[c] > 0) })).filter(x => x.ev.length);
+    if (!hot.length) return null;
+    const worst = Math.max(...hot.flatMap(x => x.ev.map(([, c]) => RANK[c])));
+    const ev = [...new Set(hot.flatMap(x => x.ev.filter(([, c]) => RANK[c] === worst).map(([e]) => EVENTS[e] ?? e)))];
+    const zn = hot.filter(x => x.ev.some(([, c]) => RANK[c] === worst)).map(x => ZONES[x.z.area] ?? x.z.area);
+    return DOT[worst] + " <b>allerta " + COLOR[worst] + " " + day + "</b>: " + esc(listIt(ev)) + " (" + esc(listIt(zn)) + ")";
+  }).filter(Boolean);
+  return parts.length ? parts.join("\n") : DOT[0] + " nessuna allerta oggi né domani";
 }
 
 function riversLine() {
   if (!dati?.fiumi) return "dato non disponibile";
   const st = dati.fiumi.flatMap(f => f.stazioni.map(s => ({ f: f.fiume, s, v: s.series.at(-1)?.[1] }))).filter(x => x.v != null);
   const over = st.map(x => ({ ...x, lvl: x.s.soglie.filter(t => t != null && x.v >= t).length })).filter(x => x.lvl > 0);
-  if (!over.length) return `${DOT[0]} tutte le ${st.length} stazioni sotto la soglia 1`;
+  if (!over.length) return DOT[0] + " tutti sotto la soglia 1";
   const worst = Math.max(...over.map(x => x.lvl));
-  return `${DOT[Math.min(3, worst)]} <b>${esc(listIt([...new Set(over.map(x => x.f))]))}</b> oltre la soglia (${over.length} ${over.length === 1 ? "stazione" : "stazioni"})`;
+  return DOT[Math.min(3, worst)] + " <b>" + esc(listIt([...new Set(over.map(x => x.f))])) + "</b> oltre la soglia ("
+    + over.length + " " + (over.length === 1 ? "stazione" : "stazioni") + ")";
 }
 
+const oggi = GROUPS.map(([g]) => group(g, 0, Math.min(nowHour, 21)));
+const domani = GROUPS.map(([g]) => group(g, 1, 0));
+const ref = OM[PLACES.findIndex(p => p.id === "forli")]?.daily ?? OM[0].daily;
 const today = new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" });
+const tomorrowText = summary(domani).replace(/^Giornata asciutta/, "asciutto").replace(/^./, c => c.toLowerCase()).replace(/\.$/, "");
 const text = [
   MODE === "prova" ? "🧪 <i>Messaggio di prova</i>\n" : "",
-  `☀️ <b>Buongiorno Romagna</b> · ${today}`,
+  "☀️ <b>Buongiorno Romagna</b> · " + today,
+  "<i>" + esc(summary(oggi)) + "</i>",
   "",
-  "<b>Pioverà oggi?</b>",
-  ...GROUPS.map(([g, icon, name]) => `${icon} ${name}: ${groupDay(g, 0)}`),
+  ...CITIES.map(id => {
+    const p = PLACES.find(x => x.id === id), c = info(x => x.id === id, 0, Math.min(nowHour, 21));
+    return c.icon + " <b>" + p.name + "</b> ↑" + c.tmax + "° ↓" + c.tmin + "° · " + esc(c.text);
+  }),
   "",
-  "<b>E domani?</b>",
-  ...GROUPS.map(([g, icon, name]) => `${icon} ${name}: ${groupDay(g, 1)}`),
+  "📅 <b>Domani</b>: " + esc(tomorrowText) + " · ↑" + Math.max(...domani.map(x => x.tmax)) + "° ↓" + Math.min(...domani.map(x => x.tmin)) + "°",
   "",
-  `⚠️ Allerte: ${alertsLine("oggi")}`,
-  `🌊 Fiumi: ${riversLine()}`,
+  "⚠️ <b>Allerte</b>: " + alertsLine(),
+  "🌊 <b>Fiumi</b>: " + riversLine(),
+  "🌅 Alba " + ref.sunrise[0].slice(11, 16) + " · tramonto " + ref.sunset[0].slice(11, 16),
   "",
-  `👉 <a href="https://${SITE}/">${SITE}</a> · previsioni per la tua località`,
-  `<i>Non è un servizio ufficiale: per le allerte fa fede Allerta Meteo Emilia-Romagna.</i>`
+  '👉 <a href="https://' + SITE + '/">Le previsioni per la tua località su ' + SITE + "</a>"
 ].filter((l, i) => !(i === 0 && l === "")).join("\n");
 
 if (DRY) { console.log(text); process.exit(0); }
