@@ -123,8 +123,12 @@ button, select { font: inherit; color: inherit; }
 @keyframes blink { 50% { opacity: .35; } }
 h1 { margin: 22px 0 0; font-family: var(--display); font-size: clamp(2.4rem, 6.6vw, 3.9rem); line-height: 1.02; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; text-shadow: 0 2px 24px rgba(0,0,0,.18); }
 .hl { font-style: italic; font-weight: 600; text-decoration: underline; text-decoration-color: var(--lvl, rgba(255,255,255,.5)); text-decoration-thickness: .08em; text-underline-offset: .14em; }
-.lead { margin: 18px 0 0; max-width: 48rem; font-size: 1.06rem; color: rgba(255,255,255,.86); text-wrap: balance; text-shadow: 0 1px 12px rgba(0,0,0,.2); }
-.lead b { color: #fff; font-weight: 600; }
+/* fascia allerta: compare solo con allerta gialla o superiore; sta sul cielo, quindi sempre su fondo scuro */
+.abanner { display: flex; align-items: center; gap: 6px 16px; flex-wrap: wrap; max-width: 46rem; margin-top: 24px; padding: 12px 16px; border-radius: 12px; background: rgba(10,12,16,.74); border: 1px solid rgba(255,255,255,.16); border-left: 6px solid var(--ab); color: #fff; text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.abanner:hover { background: rgba(10,12,16,.84); }
+.abanner b { color: var(--ab); font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.abanner span { color: rgba(255,255,255,.9); font-size: .94rem; }
+.abanner em { margin-left: auto; font-style: normal; font-weight: 600; font-size: .86rem; white-space: nowrap; }
 
 /* ---------- Fregio a grappoli e foglie, come le tele stampate a ruggine ---------- */
 .fregio { height: 24px; opacity: .8; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='24'%3E%3Cg fill='none' stroke='%23b4532a' stroke-width='1.3'%3E%3Cpath d='M0 1.5h56M0 22.5h56'/%3E%3Cpath d='M42 5l6 7-6 7-6-7z'/%3E%3Cpath d='M42 7v10' stroke-width='.9'/%3E%3Cpath d='M14 4.5c0-1.6 1.5-2 2.6-1.4'/%3E%3C/g%3E%3Cg fill='%23b4532a'%3E%3Ccircle cx='10' cy='8' r='2.2'/%3E%3Ccircle cx='14.5' cy='8' r='2.2'/%3E%3Ccircle cx='19' cy='8' r='2.2'/%3E%3Ccircle cx='12.2' cy='12.2' r='2.2'/%3E%3Ccircle cx='16.8' cy='12.2' r='2.2'/%3E%3Ccircle cx='14.5' cy='16.4' r='2.2'/%3E%3Ccircle cx='28' cy='12' r='1.3'/%3E%3Ccircle cx='55' cy='12' r='1.3'/%3E%3C/g%3E%3C/svg%3E") repeat-x center; }
@@ -390,8 +394,8 @@ h1 { margin: 22px 0 0; font-family: var(--display); font-size: clamp(2.4rem, 6.6
       <span class="pill live"><i class="dot"></i>In diretta</span>
       <a class="pill" href="#previsioni" id="skyCap">Il cielo sopra la Romagna</a>
     </div>
-    <h1 id="hTitle">Romagna,<br><span class="hl" id="hVerdict">guardo il cielo…</span></h1>
-    <p class="lead"><span id="lead">&nbsp;</span> <span id="riverLead"></span></p>
+    <h1>Previsioni per<br><span class="hl">la Romagna</span></h1>
+    <a class="abanner" id="aBanner" href="#allerte" hidden></a>
   </header>
 </div>
 
@@ -576,7 +580,7 @@ const ALERT = {
 };
 const RIVER_SHORT = { "Bidente-Ronco": "Ronco", "Rubicone e Pisciatello": "Rubicone", "Fiumi Uniti": "F. Uniti" };
 
-const REFRESH_MS = 15 * 60 * 1000, RADAR_MS = 10 * 60 * 1000;
+const REFRESH_MS = 15 * 60 * 1000, RADAR_MS = 10 * 60 * 1000, RADAR_FRESH_MS = 30 * 60 * 1000;
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const LIGHT = matchMedia("(prefers-color-scheme: light)");
 const MODELS = [
@@ -781,44 +785,24 @@ function renderAlerts() {
 }
 document.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", () => { alertDay = b.dataset.day; renderAlerts(); }));
 
-/* ---------- Titolone: allerte prima di tutto, poi il tempo per gruppo di località ---------- */
-function renderHero() {
-  if (!overview) return;
-  const late = new Date().getHours() >= 20;
-  const k = late ? 1 : 0, when = late ? "domani" : "oggi";
-  let text, css;
-
-  const zones = dati?.[when]?.zone ?? [];
-  const worstAlert = zones.map(z => ({ z, s: zoneState(z) })).sort((a, b) => b.s.worst - a.s.worst)[0];
-  if (worstAlert && worstAlert.s.worst > 0) {
-    const [ev, c] = worstAlert.s.hot[0];
-    text = `allerta ${ALERT[c].adj} per ${(EVENTS[ev] ?? ev).toLowerCase()}`;
-    css = ALERT[c].css;
-  } else {
-    const day = PLACES.map((p, i) => {
-      const D = overview[i].daily;
-      return { p, code: D.weather_code[k], rain: (D.precipitation_sum[k] ?? 0) >= 1 || (D.precipitation_probability_max[k] ?? 0) >= 60 };
-    });
-    const wet = Object.keys(GROUPS).filter(g => { const g2 = day.filter(d => d.p.group === g); return g2.filter(d => d.rain).length * 2 >= g2.length; });
-    const storms = day.filter(d => d.code >= 95);
-    const snow = day.filter(d => SNOW(d.code));
-    if (storms.length) {
-      const g = [...new Set(storms.map(d => d.p.group))];
-      text = "temporali " + (g.length === 3 ? "su tutta la regione" : listIt(g.map(x => GROUPS[x].where)));
-      css = "var(--warn)";
-    } else if (wet.length === 3) { text = "pioggia su tutta la regione"; css = "var(--rain)"; }
-    else if (wet.length) { text = "pioggia " + listIt(wet.map(x => GROUPS[x].where)); css = "var(--rain)"; }
-    else if (snow.length) { text = "neve in montagna"; css = "var(--rain)"; }
-    else { text = "giornata asciutta"; css = "var(--go)"; }
-  }
-  $("hTitle").innerHTML = `Romagna ${when},<br><span class="hl" id="hVerdict" style="--lvl:${css}">${esc(text)}.</span>`;
-
-  const mx = PLACES.map((p, i) => ({ p, t: overview[i].daily.temperature_2m_max[k] })).sort((a, b) => a.t - b.t);
-  let lead = `Massime ${when} da <b>${rnd(mx[0].t)}°</b> a ${esc(mx[0].p.name)} a <b>${rnd(mx.at(-1).t)}°</b> a ${esc(mx.at(-1).p.name)}.`;
-  const tomorrow = !late && (dati?.domani?.zone ?? []).map(z => zoneState(z)).sort((a, b) => b.worst - a.worst)[0];
-  if (tomorrow && tomorrow.worst > 0 && !(worstAlert?.s.worst > 0)) lead += ` <b>Domani allerta ${ALERT[tomorrow.color].adj}</b> per ${(EVENTS[tomorrow.hot[0][0]] ?? "").toLowerCase()}.`;
-  $("lead").innerHTML = lead;
+/* ---------- Fascia allerta in testata: solo con allerta gialla o superiore, oggi o altrimenti domani ---------- */
+// colori pieni: la fascia sta sul cielo, sempre su fondo scuro, anche col tema chiaro
+const ALERT_BRIGHT = { yellow: "#f2c62f", orange: "#f08a3c", red: "#ef4444" };
+function renderAlertBanner() {
+  const b = $("aBanner");
+  const pick = ["oggi", "domani"].map(day => ({ day, st: (dati?.[day]?.zone ?? []).map(z => ({ z, s: zoneState(z) })).filter(x => x.s.worst > 0) }))
+    .find(x => x.st.length);
+  if (!pick) { b.hidden = true; return; }
+  const worst = Math.max(...pick.st.map(x => x.s.worst));
+  const color = Object.keys(ALERT).find(k => ALERT[k].rank === worst);
+  const events = [...new Set(pick.st.flatMap(x => x.s.hot.filter(([, c]) => ALERT[c].rank === worst).map(([e]) => EVENTS[e] ?? e)))];
+  const zones = pick.st.filter(x => x.s.worst === worst).map(x => ZONES[x.z.area]?.name ?? x.z.area);
+  b.style.setProperty("--ab", ALERT_BRIGHT[color]);
+  b.dataset.aday = pick.day;
+  b.innerHTML = `<b>Allerta ${ALERT[color].adj} ${pick.day}</b><span>${esc(listIt(events.map((e, i) => i ? e.toLowerCase() : e)))} · ${zones.length > 2 ? zones.length + " zone" : esc(listIt(zones))}</span><em>Dettagli ›</em>`;
+  b.hidden = false;
 }
+$("aBanner").addEventListener("click", () => { alertDay = $("aBanner").dataset.aday ?? "oggi"; renderAlerts(); });
 
 /* ---------- Adesso nella località scelta ---------- */
 
@@ -884,7 +868,7 @@ document.addEventListener("click", e => {
 
 /* ---------- Previsioni della località scelta ---------- */
 function renderPick() {
-  $("pTitle").textContent = `Previsioni per ${sel.name}`;
+  $("pTitle").textContent = sel.name;
   $("pick").innerHTML = PLACES.map(p => `<button type="button" data-place="${p.id}" aria-pressed="${p === sel}">${esc(p.name)}</button>`).join("");
 }
 
@@ -1122,8 +1106,11 @@ async function describeRainForPlace() {
       else trend = ", <b>appena comparsa</b>";
       txt = `🌦️ Pioggia a <b>${rnd(now.km)} km</b> da ${esc(p.name)} verso ${now.dir}${trend}.`;
     }
+    // radar vecchio: lo diciamo e il cielo in testata non piove per una pioggia che forse è già passata
+    const shot = new Date(frames.at(-1).time * 1000), fresh = Date.now() - shot <= RADAR_FRESH_MS;
+    if (!fresh) txt = `⏳ <b>Radar in ritardo</b>: l'ultima immagine è delle ${clock(shot)} e non descrive il cielo di adesso.`;
     $("rainNow").innerHTML = txt;
-    radarRainHere = !!now && now.km <= 2;
+    radarRainHere = fresh && !!now && now.km <= 2;
     renderSky();
   } catch {
     if (seq === rainSeq) $("rainNow").textContent = "Non riesco a leggere il radar intorno alla località.";
@@ -1209,7 +1196,6 @@ function renderMetro() {
 function renderRivers() {
   if (!dati?.fiumi) {
     $("rvSum").innerHTML = `<p>Livelli non disponibili in questo momento: guarda la pagina ARPAE.</p>`;
-    $("riverLead").textContent = "";
     return;
   }
   const all = dati.fiumi.flatMap(f => f.stazioni.map(s => ({ f: f.fiume, s, st: rvState(s) })));
@@ -1225,24 +1211,21 @@ function renderRivers() {
   $("rvDetail").innerHTML = riverCard(f);
   $("rivers").innerHTML = dati.fiumi.map(riverCard).join("");
 
-  let sum, lead;
+  let sum;
   if (over.length) {
     const L = RV_LEVELS[over[0].st.lvl];
     sum = `<span class="rv-badge" style="--lvl:${L.css}"><i></i>${over.length} ${over.length === 1 ? "stazione" : "stazioni"} oltre soglia</span><p>${over.slice(0, 4).map(x => `<b>${esc(x.f)}</b> a ${esc(x.s.name)} (soglia ${x.st.lvl})`).join(", ")}${over.length > 4 ? "…" : ""}.</p>`;
-    lead = `Fiumi: <b>${listIt([...new Set(over.map(x => x.f))])} oltre la soglia</b> in ${over.length} ${over.length === 1 ? "stazione" : "stazioni"}.`;
   } else {
     sum = `<span class="rv-badge" style="--lvl:var(--go)"><i></i>Tutto sotto le soglie</span><p>Tutte le <b>${ok.length} stazioni</b> sono sotto la soglia 1${rising.length ? `; in crescita veloce: ${rising.map(x => `${esc(x.f)} a ${esc(x.s.name)}`).join(", ")}` : ""}.</p>`;
-    lead = `Fiumi tutti sotto le soglie${rising.length ? `, <b>in crescita ${listIt([...new Set(rising.map(x => x.f))])}</b>` : ""}.`;
   }
   sum += newest ? `<p style="margin-left:auto; font-size:.78rem; color:var(--ink-faint)">Livelli delle ${clock(new Date(newest))}</p>` : "";
   $("rvSum").innerHTML = sum;
-  $("riverLead").innerHTML = lead;
 }
 
 async function loadDati() {
   try { dati = await getJSON("dati.json?t=" + Date.now()); }
   catch { dati = null; }
-  renderAlerts(); renderRivers(); renderNowAlert(); renderHero();
+  renderAlerts(); renderRivers(); renderNowAlert(); renderAlertBanner();
 }
 
 /* ---------- Avvio ---------- */
@@ -1254,9 +1237,9 @@ async function load() {
     const o = await getJSON(overviewURL());
     overview = Array.isArray(o) ? o : [o];
     $("updated").textContent = "Aggiornato alle " + clock(new Date());
-    renderNow(); renderPlaces(); renderDays(); updateMarkers(); renderHero();
+    renderNow(); renderPlaces(); renderDays(); updateMarkers();
   } catch (e) {
-    $("hVerdict").textContent = "previsioni non raggiungibili.";
+    $("skyCap").textContent = "Previsioni non raggiungibili";
     $("updated").textContent = `Errore (${e.message}): controlla la connessione e premi Aggiorna`;
   }
   loadDetail();
