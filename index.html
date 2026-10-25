@@ -27,6 +27,8 @@
 <style>
 /* Meteo della Romagna: in cima il riepilogo della località preferita (adesso, oggi, domani, allerta, fiume),
    sotto tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
+   Colori: ruggine solo per l'interfaccia (navigazione, bottoni, etichette); colori meteo solo per le condizioni
+   (pioggia blu, sole ocra); scala del rischio verde-giallo-arancione-rosso solo per allerte e fiumi; temperature neutre.
    Identità: logo con sole e fiumi (assets/logo), ruggine delle tele stampate romagnole, fregio a grappoli e foglie,
    Fraunces per i titoli (in assets/fonts, licenza OFL). Tema scuro o chiaro secondo il dispositivo;
    in testata un cielo che segue ora e tempo della località scelta. */
@@ -45,7 +47,6 @@
   --go: #2fbf71; --warn: #f2b233; --stop: #e5484d;
   --al-yellow: #f2c62f; --al-orange: #f08a3c; --al-red: #e5484d;
   --mline: rgba(255,255,255,.18); --sea: rgba(124,196,255,.2);
-  --temp-filter: none;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --display: "Fraunces", Georgia, "Times New Roman", serif;
 }
@@ -63,7 +64,6 @@
     --go: #17924c; --warn: #b07400; --stop: #c9353b;
     --al-yellow: #a88300; --al-orange: #c8661e; --al-red: #c9353b;
     --mline: rgba(70,45,20,.2); --sea: rgba(31,111,181,.1);
-    --temp-filter: brightness(.7) saturate(1.35);
   }
   /* icone meteo leggibili su fondo chiaro */
   .cl { fill: #c4ccd6; } .cl.dk { fill: #97a1ae; } .fl { stroke: #b8c0ca; } .mo { fill: #8592bd; } .sn { fill: #a3b8cf; }
@@ -76,7 +76,6 @@ a { color: inherit; }
 button, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--brand-hi); outline-offset: 3px; border-radius: 6px; }
 .container { max-width: 1100px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.tc { filter: var(--temp-filter); }
 
 /* ---------- Barra in alto ---------- */
 .nav { position: sticky; top: 0; z-index: 1100; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
@@ -113,15 +112,29 @@ button, select { font: inherit; color: inherit; }
 @keyframes flash { 0%, 89%, 92%, 95%, 100% { opacity: 0; } 90% { opacity: .32; } 93.5% { opacity: .22; } }
 
 /* ---------- Titolo ---------- */
-.hero { position: relative; z-index: 2; padding-top: 40px; padding-bottom: 80px; }
-@media (max-width: 760px) { .hero { padding-top: 26px; padding-bottom: 64px; } }
+.hero { position: relative; z-index: 2; padding-top: 30px; padding-bottom: 84px; }
+@media (max-width: 760px) { .hero { padding-top: 20px; padding-bottom: 68px; } }
+.kicker { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { display: inline-flex; align-items: center; gap: 7px; font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #fff; padding: 5px 10px; border: 1px solid rgba(255,255,255,.28); border-radius: 999px; background: rgba(255,255,255,.12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-decoration: none; }
 .pill.live { color: #c4f7d8; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; animation: blink 2.4s infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4vw, 3.7rem); line-height: 1.02; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; text-shadow: 0 2px 24px rgba(0,0,0,.18); }
-.hl { font-style: italic; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(255,255,255,.5); text-decoration-thickness: .08em; text-underline-offset: .14em; }
+h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 600; font-size: 1.05rem; letter-spacing: 0; color: rgba(255,255,255,.88); }
+/* adesso nella località scelta: è la cosa più grande della pagina */
+.place-row { display: flex; align-items: center; gap: 10px; margin-top: 26px; min-width: 0; }
+.fav { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); color: #fff; font-size: 1.2rem; line-height: 1; cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.fav[aria-pressed="true"] { color: #ffd25a; border-color: rgba(255,210,90,.7); background: rgba(255,210,90,.16); }
+.picker { appearance: none; -webkit-appearance: none; min-width: 0; max-width: 100%; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 2px center; border: 0; padding: 0 26px 0 0; font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -.015em; color: #fff; cursor: pointer; text-overflow: ellipsis; text-shadow: 0 2px 16px rgba(0,0,0,.2); field-sizing: content; }
+.picker option, .picker optgroup { font-family: var(--font); font-size: 1rem; color: #1f1b17; background: #fff; text-shadow: none; }
+.now-hero { display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; margin-top: 4px; }
+.now-t { font-size: clamp(5.4rem, 19vw, 8.5rem); font-weight: 800; letter-spacing: -.06em; line-height: .92; font-variant-numeric: tabular-nums; text-shadow: 0 4px 30px rgba(0,0,0,.16); }
+.now-hero svg { width: clamp(64px, 15vw, 92px); height: clamp(64px, 15vw, 92px); flex: none; filter: drop-shadow(0 4px 16px rgba(0,0,0,.18)); }
+.now-c { display: grid; gap: 4px; }
+.now-c span { font-size: clamp(1.15rem, 3.4vw, 1.5rem); font-weight: 600; }
+.now-c small { font-size: .92rem; color: rgba(255,255,255,.82); font-variant-numeric: tabular-nums; }
+.fav-hint { margin: 16px 0 0; font-size: .8rem; color: rgba(255,255,255,.72); max-width: 40rem; }
+.fav-hint button { background: none; border: 0; padding: 0; color: #fff; font-size: inherit; cursor: pointer; text-decoration: underline; }
 /* fascia allerta: compare solo con allerta gialla o superiore; sta sul cielo, quindi sempre su fondo scuro */
 .abanner { display: flex; align-items: center; gap: 6px 16px; flex-wrap: wrap; max-width: 46rem; margin-top: 22px; padding: 12px 16px; border-radius: 12px; background: rgba(10,12,16,.74); border: 1px solid rgba(255,255,255,.16); border-left: 6px solid var(--ab); color: #fff; text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .abanner:hover { background: rgba(10,12,16,.84); }
@@ -145,43 +158,33 @@ h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4
 .loading { color: var(--ink-faint); font-size: .9rem; }
 .tip { margin: 16px 0 0; font-size: .88rem; color: var(--ink-soft); }
 /* orari dei dati: misura, acquisizione, pagina */
-.stamp { margin: 18px 0 0; font-size: .76rem; color: var(--ink-faint); line-height: 1.6; }
-.stamp b { color: var(--ink-soft); font-weight: 600; }
+.stamp { margin: 32px 0 0; font-size: .72rem; color: var(--ink-faint); line-height: 1.6; }
+.stamp b { color: var(--ink-faint); font-weight: 600; }
 .stamp a { color: var(--ink-soft); }
 
 /* ---------- Riepilogo della località ---------- */
-.sum { margin-top: 20px; padding: 0; overflow: hidden; }
-.sum-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 16px 18px 12px; }
-@media (max-width: 560px) { .sum-head { gap: 10px; padding: 14px 14px 10px; } .picker { font-size: 1.3rem; } .sum-now svg { display: none; } .sum-now b { font-size: 1.8rem; } }
-.fav { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--card-2); color: var(--ink-soft); font-size: 1.25rem; line-height: 1; cursor: pointer; display: grid; place-items: center; }
-.fav[aria-pressed="true"] { color: #f2b233; border-color: color-mix(in srgb, #f2b233 55%, transparent); background: color-mix(in srgb, #f2b233 12%, transparent); }
-.picker { appearance: none; -webkit-appearance: none; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 4px center; border: 0; padding: 0 22px 0 0; font-family: var(--display); font-weight: 700; font-size: 1.7rem; letter-spacing: -.015em; color: var(--ink); cursor: pointer; justify-self: start; max-width: 100%; text-overflow: ellipsis; }
-.picker option, .picker optgroup { font-family: var(--font); font-size: 1rem; color: #1f1b17; background: #fff; }
-.sum-now { display: flex; align-items: center; gap: 8px; text-align: right; }
-.sum-now svg { width: 46px; height: 46px; flex: none; }
-.sum-now b { display: block; font-size: 2.2rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
-.sum-now span { display: block; font-size: .8rem; color: var(--ink-soft); }
-.fav-hint { margin: 0; padding: 0 18px 12px; font-size: .8rem; color: var(--ink-faint); }
-.fav-hint button { background: none; border: 0; padding: 0; color: var(--brand-ink); font-size: inherit; cursor: pointer; text-decoration: underline; }
-.sum-q { padding: 12px 18px 4px; border-top: 1px solid var(--line); font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+.sum { margin-top: 24px; padding: 0; overflow: hidden; }
+.sum-q { padding: 16px 18px 4px; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
 .sday { display: grid; grid-template-columns: 74px auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 18px; }
 .sday + .sday { border-top: 1px dashed var(--line); }
 .sd-k { font-weight: 700; font-size: .92rem; }
 .ans { justify-self: start; min-width: 64px; text-align: center; font-weight: 800; font-size: .92rem; padding: 4px 10px; border-radius: 8px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); }
-.ans.yes { --c: var(--rain); } .ans.maybe { --c: var(--warn); } .ans.no { --c: var(--go); } .ans.na { --c: var(--ink-faint); }
+.ans.yes { --c: var(--rain); } .ans.maybe { --c: var(--rain); border-style: dashed; background: transparent; }
+.ans.no, .ans.na { --c: var(--ink-faint); background: transparent; } .ans.no { color: var(--ink-soft); }
 .sd-txt { font-size: .92rem; color: var(--ink); min-width: 0; }
-.sd-txt small { display: block; font-size: .74rem; color: var(--lvl, var(--ink-faint)); margin-top: 2px; }
+.sd-txt small { display: block; font-size: .72rem; color: var(--lvl, var(--ink-faint)); margin-top: 3px; }
 .sd-tt { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
-.sd-tt span + span { font-weight: 600; opacity: .75; margin-left: 4px; }
+.sd-tt span + span { font-weight: 500; color: var(--ink-faint); margin-left: 6px; }
 @media (max-width: 560px) { .sday { grid-template-columns: auto 1fr auto; } .sd-k { grid-column: 1 / -1; } }
 .sum-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); }
-.schip { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 600; padding: 5px 10px; border-radius: 8px; text-decoration: none; color: var(--ink); background: color-mix(in srgb, var(--lvl) 10%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 45%, transparent); }
+.schip { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 600; padding: 5px 10px; border-radius: 8px; text-decoration: none; color: var(--ink); background: var(--card-2); border: 1px solid var(--line); }
+.schip.hot { background: color-mix(in srgb, var(--lvl) 14%, transparent); border-color: color-mix(in srgb, var(--lvl) 50%, transparent); }
 .schip i { width: 7px; height: 7px; border-radius: 50%; background: var(--lvl); flex: none; }
 .schip small { font-weight: 500; color: var(--ink-faint); }
 .sum-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 18px 14px; font-size: .75rem; color: var(--ink-faint); border-top: 1px solid var(--line); }
 
 /* ---------- Schede: in alto sotto la barra su schermo largo, in basso come un'app sul telefono ---------- */
-.tabs { position: sticky; top: 60px; z-index: 1050; display: flex; gap: 4px; margin-top: 20px; padding: 4px; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 12px; }
+.tabs { position: sticky; top: 60px; z-index: 1050; display: flex; gap: 4px; margin-top: 28px; padding: 4px; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 12px; }
 .tabs a { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 9px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: .92rem; }
 .tabs a:hover { background: var(--tint); }
 .tabs a[aria-current="page"] { background: var(--brand); color: #fff; }
@@ -196,8 +199,8 @@ h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4
   .tdot { position: absolute; top: 4px; left: calc(50% + 8px); }
   body { padding-bottom: 72px; }
 }
-.tab { margin-top: 28px; }
-.block + .block { margin-top: 48px; }
+.tab { margin-top: 40px; }
+.block + .block { margin-top: 72px; }
 .tab h2 { margin: 6px 0 0; font-family: var(--display); font-size: clamp(1.5rem, 3.2vw, 1.9rem); font-weight: 700; letter-spacing: -.015em; line-height: 1.1; }
 .tab .sub { margin: 8px 0 18px; color: var(--ink-soft); max-width: 44rem; }
 .sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -255,7 +258,7 @@ h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4
 
 /* ---------- Adesso: dettagli ---------- */
 .now-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .74rem; color: var(--ink-faint); margin-bottom: 12px; }
-.now-top .on { display: flex; align-items: center; gap: 7px; color: var(--live); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: .7rem; }
+.now-top .on { display: flex; align-items: center; gap: 7px; color: var(--ink-faint); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: .7rem; }
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
 .tile .k { font-size: .68rem; color: var(--ink-faint); font-weight: 500; }
@@ -273,7 +276,7 @@ h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4
 .place .pn { font-size: .9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .place .pr { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
 .place .pr svg { width: 34px; height: 34px; flex: none; }
-.place .pt { font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.place .pt { font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .place .pd { font-size: .74rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .place .pp { font-size: .72rem; color: var(--rain); min-height: 1.1em; }
 
@@ -283,6 +286,8 @@ h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4
 .rv-sum b { color: var(--ink); }
 .rv-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 7px; color: var(--lvl); background: color-mix(in srgb, var(--lvl) 14%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 50%, transparent); white-space: nowrap; }
 .rv-badge i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.rv-badge.ok { color: var(--ink-soft); background: transparent; border-color: var(--line-2); }
+.rv-badge.ok i { background: var(--go); }
 .metro { padding: 0; overflow: hidden; }
 .metro-map { position: relative; height: 460px; --ytop: 17%; --ysea: 84%; }
 @media (max-width: 760px) { .metro-map { height: 440px; --ytop: 25%; } }
@@ -317,7 +322,7 @@ h1 { margin: 20px 0 0; font-family: var(--display); font-size: clamp(2.2rem, 6.4
 .rv-detail .official { margin-top: 0; display: grid; justify-items: start; }
 .rivers { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 12px; }
 @media (max-width: 400px) { .rivers { grid-template-columns: 1fr; } }
-details.more { margin-top: 14px; }
+details.more { margin-top: 56px; }
 details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .92rem; font-weight: 600; padding: 6px 0; }
 .rcard { padding: 14px 16px; }
 .rcard header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -326,7 +331,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .st { display: grid; grid-template-columns: 10px minmax(0, 1fr) 72px auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: .84rem; }
 .st > i { width: 8px; height: 8px; border-radius: 50%; background: var(--lvl); }
 .st .sn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.st .sn small { display: block; color: var(--ink-faint); font-size: .68rem; }
+.st .sn small { display: block; color: var(--ink-faint); font-size: .66rem; opacity: .85; }
 .st svg { width: 72px; height: 24px; display: block; }
 .st .sv { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
 .st .sv small { display: block; font-weight: 500; font-size: .68rem; color: var(--ink-faint); }
@@ -377,7 +382,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .dcard > svg { width: 40px; height: 40px; margin: 6px 0 2px; }
 .dcard .tt { font-variant-numeric: tabular-nums; }
 .dcard .tt b { font-size: 1.25rem; font-weight: 800; }
-.dcard .tt span { font-size: .9rem; font-weight: 600; margin-left: 5px; opacity: .8; }
+.dcard .tt span { font-size: .9rem; font-weight: 500; margin-left: 5px; color: var(--ink-faint); }
 .dcard .dc { font-size: .74rem; color: var(--ink-soft); min-height: 2.5em; line-height: 1.25; text-wrap: balance; }
 .dcard .df { justify-self: stretch; display: flex; justify-content: space-between; gap: 6px; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--line); font-size: .7rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dcard .df .pp { color: var(--rain); }
@@ -423,11 +428,17 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
   <div class="sky-l s-snow"></div>
   <div class="sky-l s-flash"></div>
   <header class="hero container" aria-live="polite">
-    <div class="pills">
-      <span class="pill live"><i class="dot"></i>In diretta</span>
-      <span class="pill" id="skyCap">Il cielo sopra la Romagna</span>
+    <div class="kicker"><span class="pill live"><i class="dot"></i>In diretta</span><h1>Previsioni per la Romagna</h1></div>
+    <div class="place-row">
+      <button class="fav" type="button" id="fav" aria-pressed="false" aria-label="Salva come la mia località">☆</button>
+      <select class="picker" id="picker" aria-label="Scegli la località"></select>
     </div>
-    <h1>Previsioni per<br><span class="hl">la Romagna</span></h1>
+    <div class="now-hero">
+      <b class="now-t" id="tNow">--°</b>
+      <svg id="iNow" viewBox="0 0 64 64" aria-hidden="true"></svg>
+      <div class="now-c"><span id="cNow">Carico…</span><small id="nowMeta">&nbsp;</small></div>
+    </div>
+    <p class="fav-hint" id="favHint"></p>
     <a class="abanner" id="aBanner" href="#allerte" hidden></a>
   </header>
 </div>
@@ -437,12 +448,6 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
   <p class="card tip" id="installTip" hidden>Su iPhone: tocca <b>Condividi</b> e poi <b>Aggiungi alla schermata Home</b>. Cielo Romagna si aprirà come un'app, sulla tua località.</p>
 
   <section class="card sum" id="riepilogo" aria-live="polite">
-    <div class="sum-head">
-      <button class="fav" type="button" id="fav" aria-pressed="false" aria-label="Salva come la mia località">☆</button>
-      <select class="picker" id="picker" aria-label="Scegli la località"></select>
-      <div class="sum-now"><svg id="iNow" viewBox="0 0 64 64" aria-hidden="true"></svg><div><b class="tc" id="tNow">--°</b><span id="cNow">Carico…</span></div></div>
-    </div>
-    <p class="fav-hint" id="favHint"></p>
     <div class="sum-q">Pioverà?</div>
     <div id="sDays"><div class="sday"><span class="sd-k">Oggi</span><span class="ans na">…</span><span class="sd-txt">Carico le previsioni…</span><span></span></div></div>
     <div class="sum-chips"><a class="schip" id="sAlert" href="#allerte" style="--lvl:var(--ink-faint)"><i></i>Allerte…</a><a class="schip" id="sRiver" href="#fiumi" style="--lvl:var(--ink-faint)"><i></i>Fiumi…</a></div>
@@ -710,17 +715,6 @@ function when(t) {
 }
 const listIt = a => a.length <= 1 ? (a[0] ?? "") : a.slice(0, -1).join(", ") + " e " + a.at(-1);
 const localDate = d => `${d.getFullYear()}-${hh(d.getMonth() + 1)}-${hh(d.getDate())}`;
-const TEMP_STOPS = [[-5,"#8aa8ff"],[5,"#6cc3ff"],[12,"#7fe0b0"],[18,"#f2d36b"],[25,"#f59a4a"],[33,"#e5484d"]];
-function tempColor(t) {
-  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-  if (t <= TEMP_STOPS[0][0]) return TEMP_STOPS[0][1];
-  for (let i = 1; i < TEMP_STOPS.length; i++) if (t <= TEMP_STOPS[i][0]) {
-    const [t0, c0] = TEMP_STOPS[i - 1], [t1, c1] = TEMP_STOPS[i], k = (t - t0) / (t1 - t0);
-    const a = hex(c0), b = hex(c1);
-    return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(",")})`;
-  }
-  return TEMP_STOPS.at(-1)[1];
-}
 
 async function getJSON(url) {
   const r = await fetch(url, { cache: "no-store" });
@@ -788,8 +782,6 @@ const SKY = {
   snow:   { day: ["#56667a", "#7a8ca1", "#a3b3c4"], dawn: ["#4a4f68", "#86788c", "#b99a9a"], dusk: ["#3b3f58", "#6f647a", "#a08588"], night: ["#141a26", "#253045", "#3a4760"] }
 };
 const CLOUD_TINT = { day: "rgba(255,255,255,.42)", dawn: "rgba(255,214,205,.32)", dusk: "rgba(255,200,185,.28)", night: "rgba(150,165,190,.13)" };
-const COND_TXT = { clear: "sereno", partly: "poco nuvoloso", cloudy: "nuvoloso", fog: "nebbia", rain: "pioggia", storm: "temporale", snow: "neve" };
-const COND_TXT_NIGHT = { clear: "stellato", partly: "qualche nuvola" };
 
 // stelle sparse una volta sola
 $("stars").style.backgroundImage = Array.from({ length: 70 }, () =>
@@ -816,8 +808,6 @@ function renderSky() {
   const cls = { stars: clear && phase === "night", glow: !!glow, clouds: cond !== "clear" && cond !== "fog", few: cond === "partly",
     rain: cond === "rain" || cond === "storm", snow: cond === "snow", fog: cond === "fog", storm: cond === "storm" };
   sky.className = "sky " + Object.keys(cls).filter(k => cls[k]).join(" ");
-  const txt = (phase === "night" && COND_TXT_NIGHT[cond]) || COND_TXT[cond];
-  $("skyCap").textContent = `${sel.name} · ${txt}, ${rnd(c.temperature_2m)}°`;
 }
 
 /* ---------- Località preferita: resta solo sul dispositivo (localStorage) ---------- */
@@ -869,7 +859,7 @@ function rainAnswer(H, date, fromHour) {
 
 // affidabilità: in quante ore del giorno i modelli non sono d'accordo sulla pioggia
 const REL = [
-  { word: "alta",  css: "var(--go)",   why: n => `i ${n} modelli concordano` },
+  { word: "alta",  css: "var(--ink-faint)",   why: n => `i ${n} modelli concordano` },
   { word: "media", css: "var(--warn)", why: () => "i modelli discordano su qualche ora" },
   { word: "bassa", css: "var(--stop)", why: () => "i modelli non sono d'accordo: ricontrolla più tardi" }
 ];
@@ -904,7 +894,7 @@ function renderSummary() {
       <span class="sd-k">${label}</span>
       <span class="ans ${a?.ans ?? "na"}">${a?.word ?? "…"}</span>
       <span class="sd-txt">${a ? esc(a.text[0].toUpperCase() + a.text.slice(1)) : "Carico le previsioni…"}${rel}</span>
-      <span class="sd-tt tc"><span style="color:${tempColor(D.temperature_2m_max[k])}">${rnd(D.temperature_2m_max[k])}°</span><span style="color:${tempColor(D.temperature_2m_min[k])}">${rnd(D.temperature_2m_min[k])}°</span></span>
+      <span class="sd-tt"><span>${rnd(D.temperature_2m_max[k])}°</span><span>${rnd(D.temperature_2m_min[k])}°</span></span>
     </div>`;
   }).join("");
   renderSummaryChips();
@@ -916,6 +906,7 @@ function renderSummaryChips() {
   if (z) {
     const s = zoneState(z), A = ALERT[s.color];
     $("sAlert").style.setProperty("--lvl", A.css);
+    $("sAlert").classList.toggle("hot", s.worst > 0);
     $("sAlert").innerHTML = `<i></i>${s.worst === 0 ? "Nessuna allerta oggi" : `Allerta ${A.adj} oggi: ${esc((EVENTS[s.hot[0][0]] ?? "").toLowerCase())}`} <small>zona ${sel.area}</small>`;
   }
   const f = dati?.fiumi?.find(x => x.fiume === sel.river);
@@ -923,6 +914,7 @@ function renderSummaryChips() {
   if (st.length) {
     const worst = Math.max(...st.map(x => x.lvl)), t = Math.max(...st.map(x => x.t)), up = st.some(x => x.d >= .15);
     $("sRiver").style.setProperty("--lvl", RV_LEVELS[worst].css);
+    $("sRiver").classList.toggle("hot", worst > 0);
     $("sRiver").innerHTML = `<i></i>${esc(f.fiume)} ${worst ? "oltre la soglia " + worst : "sotto le soglie"}${up ? ", in crescita" : ""} <small>misurato alle ${when(t)}</small>`;
   }
 }
@@ -1008,8 +1000,8 @@ function renderNow() {
   if (!d) return;
   const c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10));
   $("tNow").textContent = rnd(c.temperature_2m) + "°";
-  $("tNow").style.color = tempColor(c.temperature_2m);
   $("cNow").textContent = WMO[c.weather_code] ?? "—";
+  $("nowMeta").textContent = `Percepita ${rnd(c.apparent_temperature)}° · max ${rnd(D.temperature_2m_max[i])}° · min ${rnd(D.temperature_2m_min[i])}°`;
   $("iNow").innerHTML = icon(c.weather_code, c.is_day);
   $("dFeels").textContent = rnd(c.apparent_temperature) + "°";
   const fd = c.apparent_temperature - c.temperature_2m;
@@ -1037,7 +1029,7 @@ function renderPlaces() {
       const prob = D.precipitation_probability_max[i] ?? 0;
       return `<button type="button" class="place" data-place="${p.id}" aria-pressed="${p === sel}" title="${esc(WMO[c.weather_code] ?? "")}">
         <span class="pn">${p === fav ? "★ " : ""}${esc(p.name)}</span>
-        <span class="pr"><svg viewBox="0 0 64 64" aria-hidden="true">${icon(c.weather_code, c.is_day)}</svg><span class="pt tc" style="color:${tempColor(c.temperature_2m)}">${rnd(c.temperature_2m)}°</span></span>
+        <span class="pr"><svg viewBox="0 0 64 64" aria-hidden="true">${icon(c.weather_code, c.is_day)}</svg><span class="pt">${rnd(c.temperature_2m)}°</span></span>
         <span class="pd">max ${rnd(D.temperature_2m_max[i])}° · min ${rnd(D.temperature_2m_min[i])}°</span>
         <span class="pp">${prob >= 10 ? DROP + prob + "%" : ""}</span>
       </button>`;
@@ -1069,7 +1061,7 @@ function renderDays() {
     return `<div class="dcard${t === today ? " today" : ""}">
       <div class="dh"><span>${name}</span><small>${date.getDate()}</small></div>
       <svg viewBox="0 0 64 64" aria-hidden="true">${icon(D.weather_code[k], 1)}</svg>
-      <div class="tt tc"><b style="color:${tempColor(mx)}">${rnd(mx)}°</b><span style="color:${tempColor(mn)}">${rnd(mn)}°</span></div>
+      <div class="tt"><b>${rnd(mx)}°</b><span>${rnd(mn)}°</span></div>
       <div class="dc">${(WMO[D.weather_code[k]] ?? "").toLowerCase()}</div>
       <div class="mm">${mm >= 0.5 ? fmt1(mm) + " mm" : ""}</div>
       <div class="flags">${flags}</div>
@@ -1196,7 +1188,7 @@ const markers = new Map();
 function updateMarkers() {
   for (const p of PLACES) {
     const c = ov(p)?.current;
-    const html = `<span class="tm${p === sel ? " sel" : ""}" style="--c:${c ? tempColor(c.temperature_2m) : "rgba(255,255,255,.3)"}">${c ? rnd(c.temperature_2m) + "°" : "·"}</span>`;
+    const html = `<span class="tm${p === sel ? " sel" : ""}" style="--c:rgba(255,255,255,.5)">${c ? rnd(c.temperature_2m) + "°" : "·"}</span>`;
     const ic = L.divIcon({ className: "", html, iconSize: [0, 0] });
     if (markers.has(p.id)) markers.get(p.id).setIcon(ic).setZIndexOffset(p === sel ? 1000 : 0);
     else markers.set(p.id, L.marker([p.lat, p.lon], { icon: ic, keyboard: false, zIndexOffset: p === sel ? 1000 : 0 })
@@ -1344,7 +1336,7 @@ function riverCard(f) {
   const worst = Math.max(0, ...rows.map(r => r.st?.lvl ?? 0));
   const ends = f.stazioni.length > 1 ? `<small>da ${esc(f.stazioni[0].name)} a ${esc(f.stazioni.at(-1).name)}</small>` : "";
   return `<div class="card rcard">
-    <header><div><b>${esc(f.fiume)}</b>${ends}</div><span class="rv-badge" style="--lvl:${RV_LEVELS[worst].css}"><i></i>${worst ? "Oltre la " + RV_LEVELS[worst].label.toLowerCase() : "Sotto le soglie"}</span></header>
+    <header><div><b>${esc(f.fiume)}</b>${ends}</div><span class="rv-badge${worst ? "" : " ok"}" style="--lvl:${RV_LEVELS[worst].css}"><i></i>${worst ? "Oltre la " + RV_LEVELS[worst].label.toLowerCase() : "Sotto le soglie"}</span></header>
     ${rows.map(({ s, st }) => {
       if (!st) return `<div class="st" style="--lvl:var(--ink-faint)"><i></i><span class="sn">${esc(s.name)}</span><span></span><span class="sv"><small>n.d.</small></span></div>`;
       const L = RV_LEVELS[st.lvl], up = st.d >= .15;
@@ -1414,7 +1406,7 @@ function renderRivers() {
     tab.classList.add("alert");
     $("dotFiumi").style.setProperty("--lvl", L.css);
   } else {
-    sum = `<span class="rv-badge" style="--lvl:var(--go)"><i></i>Tutto sotto le soglie</span><p>Tutte le <b>${ok.length} stazioni</b> sono sotto la soglia 1${rising.length ? `; in crescita veloce: ${rising.map(x => `${esc(x.f)} a ${esc(x.s.name)}`).join(", ")}` : ""}.</p>`;
+    sum = `<span class="rv-badge ok" style="--lvl:var(--go)"><i></i>Tutto sotto le soglie</span><p>Tutte le <b>${ok.length} stazioni</b> sono sotto la soglia 1${rising.length ? `; in crescita veloce: ${rising.map(x => `${esc(x.f)} a ${esc(x.s.name)}`).join(", ")}` : ""}.</p>`;
     tab.classList.remove("alert");
   }
   $("rvSum").innerHTML = sum;
@@ -1478,7 +1470,7 @@ async function load() {
     $("updated").textContent = "Previsioni aggiornate alle " + clock(new Date(loadedAt));
     renderNow(); renderSummary(); renderPlaces(); renderDays(); updateMarkers(); renderStampPrev();
   } catch (e) {
-    $("skyCap").textContent = "Previsioni non raggiungibili";
+    $("cNow").textContent = "Previsioni non raggiungibili";
     $("updated").textContent = `Errore (${e.message}): controlla la connessione e premi Aggiorna`;
   }
   loadDetail();
