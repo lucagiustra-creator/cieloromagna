@@ -1,0 +1,28 @@
+name: Messaggio Telegram
+
+# Messaggio del mattino nel canale Telegram. Per ora solo a mano (prova); la schedule delle 7 si attiva dopo l'ok.
+# Il token del bot sta nel secret TELEGRAM_BOT_TOKEN; il canale nella variabile TELEGRAM_CHAT (se manca lo trova lo script).
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "prova o mattina"
+        default: prova
+
+permissions:
+  contents: read
+
+jobs:
+  invia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/telegram.mjs "${{ github.event.inputs.modo || 'mattina' }}"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
+          SCHEDULE: ${{ github.event.schedule }}
