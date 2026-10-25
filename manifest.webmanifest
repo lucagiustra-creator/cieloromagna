@@ -1,0 +1,16 @@
+{
+  "name": "Cielo Romagna",
+  "short_name": "Cielo Romagna",
+  "description": "Previsioni, radar, allerte e fiumi per la Romagna.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    { "src": "assets/logo/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/logo/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/logo/icon-quadrata.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

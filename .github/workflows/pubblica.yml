@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - name: Scarica allerte e livelli da ARPAE
         id: dati
         continue-on-error: true          # il sito va online lo stesso, con l'ultimo dato buono
@@ -37,7 +37,7 @@ jobs:
       - name: Prepara il sito
         run: |
           mkdir _site
-          cp -r index.html assets _site/
+          cp -r index.html assets manifest.webmanifest sw.js _site/
           if [ -f dati.json ]; then cp dati.json _site/; fi
       - uses: actions/upload-pages-artifact@v3
         with:

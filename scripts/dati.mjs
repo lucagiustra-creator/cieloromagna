@@ -86,6 +86,20 @@ for (const [key, ep] of [["oggi", "get-stato-allerta"], ["domani", "get-stato-al
   catch (e) { problems++; console.error(`allerte ${key}: ${e.message}`); out[key] = prev?.[key] ?? null; }
 }
 
+// numero e validità dei bollettini dalla pagina "Allerte e bollettini": l'API delle zone non li dà
+// (l'ora di emissione sta solo nel PDF, quindi non la mostriamo)
+try {
+  const r = await fetch("https://allertameteo.regione.emilia-romagna.it/allerte-e-bollettini", { headers: UA, signal: AbortSignal.timeout(20000) });
+  if (!r.ok) throw new Error(`${r.status}`);
+  const html = await r.text();
+  const re = /Allerta-Bollettino\/id\/(\d+)"[^>]*>\s*((?:Bollettino di vigilanza|Allerta)\s+\d+\/\d{4})\s+valid[oa] dalle (\d{2}:\d{2}) del (\d{2})\/(\d{2})\/(\d{4}):\s*([^<]*)/g;
+  out.bollettini = [...html.matchAll(re)].slice(0, 4).map(m => ({
+    nome: m[2].trim(), dal: `${m[6]}-${m[5]}-${m[4]}T${m[3]}`, sintesi: m[7].trim().replace(/\.$/, ""),
+    url: `https://allertameteo.regione.emilia-romagna.it/web/guest/singola-allerta/-/asset_publisher/FZPQSb6AzKtJ/Allerta-Bollettino/id/${m[1]}`
+  }));
+  if (!out.bollettini.length) throw new Error("formato della pagina cambiato");
+} catch (e) { problems++; console.error(`bollettini: ${e.message}`); out.bollettini = prev?.bollettini ?? []; }
+
 let meta = [];
 try { meta = (await json(`${API}/get-sensor-values-no-time?variabile=${LEVEL}`)).filter(x => x.idstazione); }
 catch (e) { problems++; console.error(`anagrafica stazioni: ${e.message}`); }

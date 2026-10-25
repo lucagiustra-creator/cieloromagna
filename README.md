@@ -15,6 +15,8 @@ Progetto personale e non commerciale. **Non è un servizio ufficiale**: per alle
   e ripubblica il sito su GitHub Pages. Se ARPAE non risponde riusa l'ultimo `dati.json` pubblicato;
   se i livelli restano fermi più di due ore la Action fallisce e GitHub manda una mail.
 - `.github/workflows/keepalive.yml` fa un commit al mese per non far sospendere le schedule.
+- `manifest.webmanifest` e `sw.js` rendono il sito installabile come app; il service worker non mette niente in cache.
+- La località preferita (stellina) resta solo nel browser di chi la sceglie (`localStorage`).
 - Leaflet 1.9.4 è in `assets/leaflet/` e il carattere Fraunces in `assets/fonts/` (SIL Open Font License,
   testo in `OFL.txt`): niente CDN né Google Fonts.
 - Logo in `assets/logo/`: `icon.svg` (favicon e barra), `icon-quadrata.svg` e i PNG per iPhone e Android,
