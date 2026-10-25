@@ -262,7 +262,24 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 /* ---------- Adesso: dettagli ---------- */
 .now-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .74rem; color: var(--ink-faint); margin-bottom: 12px; }
 .now-top .on { display: flex; align-items: center; gap: 7px; color: var(--ink-faint); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: .7rem; }
-.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+/* widget di "Adesso": luce, vento, UV, umidità, pioggia */
+.widgets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.wd { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.wd.wide { grid-column: 1 / -1; grid-template-columns: 124px minmax(0, 1fr); }
+.wd svg { width: 100%; height: auto; display: block; overflow: visible; }
+.wd .k { display: block; font-size: .68rem; color: var(--ink-faint); }
+.wd b { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.wd b em { font-style: normal; font-size: .74rem; font-weight: 600; color: var(--ink-soft); }
+.wd small { display: block; font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
+.w-track, .w-hor, .w-tick { fill: none; stroke: var(--line-2); stroke-width: 2; stroke-linecap: round; }
+.w-hor { stroke-dasharray: 2 4; }
+.w-sun { fill: none; stroke: #f2a33a; stroke-width: 3; stroke-linecap: round; }
+.w-off { fill: var(--ink-faint); }
+.w-card { font: 700 8px var(--font); fill: var(--ink-faint); }
+.w-arrow { fill: var(--ink); }
+.w-band { fill: none; stroke-width: 6; }
+.w-needle { fill: var(--card); stroke: var(--ink); stroke-width: 2.5; }
+.w-water { fill: var(--rain); opacity: .6; }
 .tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
 .tile .k { font-size: .68rem; color: var(--ink-faint); font-weight: 500; }
 .tile .v { font-size: 1.05rem; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
@@ -374,14 +391,50 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 @media (max-width: 560px) { .spread { grid-template-columns: 1fr; } }
 
 /* ---------- Ora per ora e giorni ---------- */
-.hours { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-.hour { flex: 0 0 64px; display: grid; justify-items: center; gap: 4px; padding: 10px 2px 8px; border-radius: 10px; font-variant-numeric: tabular-nums; }
-.hour.now { background: var(--tint-2); box-shadow: inset 0 0 0 1px var(--line-2); }
-.hour .h { font-size: .76rem; color: var(--ink-soft); font-weight: 500; }
-.hour svg { width: 30px; height: 30px; }
-.hour .t { font-size: 1.05rem; font-weight: 700; }
-.hour .p { font-size: .72rem; color: var(--rain); min-height: 1em; font-weight: 500; }
-.hour .g { font-size: .66rem; color: var(--ink-faint); }
+/* grafico delle 24 ore: curva della temperatura, barre della pioggia, fasce della notte */
+.hchart-wrap { overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
+.hchart { display: block; }
+.hchart text { font-family: var(--font); font-size: 12px; fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.hchart .tl { fill: var(--ink); font-weight: 700; font-size: 13px; }
+.hchart .hl { fill: var(--ink-faint); font-size: 11.5px; }
+.hchart .pl { fill: var(--rain); font-size: 11px; font-weight: 600; }
+.hchart .gl { fill: var(--ink-faint); font-size: 10.5px; }
+.hchart .night { fill: var(--tint); }
+.hchart .nowc { fill: var(--tint-2); }
+.hchart .base { stroke: var(--line-2); stroke-width: 1; }
+.hchart .bar { fill: var(--rain); }
+.hchart .line { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-line 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
+.hchart .area { opacity: 0; animation: fade-in .8s ease .7s forwards; }
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+@keyframes fade-in { to { opacity: 1; } }
+.hleg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: .72rem; color: var(--ink-faint); }
+.hleg span { display: inline-flex; align-items: center; gap: 6px; }
+.hleg i { display: inline-block; }
+.hleg .lg-line { width: 16px; height: 2.4px; border-radius: 2px; background: var(--ink); }
+.hleg .lg-bar { width: 8px; height: 12px; border-radius: 2px; background: var(--rain); opacity: .7; }
+.hleg .lg-night { width: 12px; height: 12px; border-radius: 3px; background: var(--tint-2); }
+/* icona grande della testata: si muove piano (raggi, nuvola, pioggia, neve, lampi, nebbia) */
+.anim .ic-rays { transform-box: fill-box; transform-origin: center; animation: ic-spin 30s linear infinite; }
+.anim .ic-cloud { animation: ic-bob 5s ease-in-out infinite alternate; }
+.anim .ic-rain path, .anim .sn circle { animation: ic-fall 1.1s linear infinite; }
+.anim .ic-rain path:nth-child(2), .anim .sn circle:nth-child(2) { animation-delay: .37s; }
+.anim .ic-rain path:nth-child(3), .anim .sn circle:nth-child(3) { animation-delay: .74s; }
+.anim .sn circle { animation-duration: 2.6s; }
+.anim .ic-bolt { animation: ic-bolt 4s infinite; }
+.anim .fl { animation: ic-fog 3.5s ease-in-out infinite alternate; }
+@keyframes ic-spin { to { transform: rotate(360deg); } }
+@keyframes ic-bob { from { transform: translateX(-1.5px); } to { transform: translateX(2px); } }
+@keyframes ic-fall { 0% { transform: translateY(-5px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(7px); opacity: 0; } }
+@keyframes ic-bolt { 0%, 86%, 92%, 100% { opacity: 1; } 88%, 95% { opacity: .15; } }
+@keyframes ic-fog { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+/* ingresso morbido dei contenuti, al caricamento e al cambio di scheda */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.place-row { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.now-hero { animation: rise .8s cubic-bezier(.2,.7,.2,1) .06s both; }
+.sum { animation: rise .7s cubic-bezier(.2,.7,.2,1) .14s both; }
+.tab > * { animation: rise .6s cubic-bezier(.2,.7,.2,1) both; }
+.tab > :nth-child(2) { animation-delay: .06s; } .tab > :nth-child(3) { animation-delay: .12s; }
+.tab > :nth-child(4) { animation-delay: .18s; } .tab > :nth-child(n+5) { animation-delay: .24s; }
 .days { display: grid; grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); gap: 10px; }
 .dcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 4px; justify-items: center; text-align: center; min-width: 0; box-shadow: var(--shadow); }
 .dcard.today { border-color: var(--brand-ink); box-shadow: inset 0 0 0 1px var(--brand-ink); }
@@ -413,6 +466,8 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .seo nav a:hover, .seo nav a[aria-current] { color: var(--ink); text-decoration: underline; }
 .foot .warn-note { color: var(--ink-soft); font-size: .82rem; }
 @media (prefers-reduced-motion: reduce) {
+  .anim *, .place-row, .now-hero, .sum, .tab > *, .hchart .area { animation: none !important; opacity: 1; }
+  .hchart .line { animation: none; stroke-dashoffset: 0; }
   html { scroll-behavior: auto; }
   .dot, .s-stars, .s-clouds i, .s-rain, .s-snow, .s-fog::before, .s-fog::after, .s-flash, .mdot.up::after { animation: none; }
   .s-clouds i:nth-child(1) { transform: translateX(8vw); } .s-clouds i:nth-child(2) { transform: translateX(55vw); }
@@ -448,7 +503,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
     </div>
     <div class="now-hero">
       <b class="now-t" id="tNow">--°</b>
-      <svg id="iNow" viewBox="0 0 64 64" aria-hidden="true"></svg>
+      <svg id="iNow" class="anim" viewBox="0 0 64 64" aria-hidden="true"></svg>
       <div class="now-c"><span id="cNow">Carico…</span><small id="nowMeta">&nbsp;</small></div>
     </div>
     <p class="fav-hint" id="favHint"></p>
@@ -477,8 +532,9 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
     <div class="block">
       <div class="eyebrow">Ora per ora</div>
       <h2>Le prossime 24 ore</h2>
-      <p class="sub">Temperatura, probabilità di pioggia e raffiche.</p>
-      <div class="card"><div class="hours" id="hours"><span class="loading">Carico…</span></div></div>
+      <p class="sub">Temperatura, probabilità di pioggia e raffiche di vento ora per ora.</p>
+      <div class="card"><div class="hchart-wrap" id="hours"><span class="loading">Carico…</span></div>
+        <div class="hleg"><span><i class="lg-line"></i>temperatura</span><span><i class="lg-bar"></i>probabilità di pioggia (più scura se forte)</span><span><i class="lg-night"></i>notte</span><span>in basso: raffiche in km/h</span></div></div>
     </div>
 
     <div class="block">
@@ -508,14 +564,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
         </div>
         <div class="card">
           <div class="now-top"><span class="on"><i class="dot"></i>Adesso a <span id="nowName">…</span></span></div>
-          <div class="tiles">
-            <div class="tile"><div class="k">Percepita</div><div class="v" id="dFeels">--</div><div class="s" id="dFeelsS">&nbsp;</div></div>
-            <div class="tile"><div class="k">Vento</div><div class="v" id="dWind">--</div><div class="s" id="dGust">&nbsp;</div></div>
-            <div class="tile"><div class="k">Umidità</div><div class="v" id="dHum">--</div><div class="s" id="dDew">&nbsp;</div></div>
-            <div class="tile"><div class="k">Indice UV</div><div class="v" id="dUv">--</div><div class="s" id="dUvS">&nbsp;</div></div>
-            <div class="tile"><div class="k">Pioggia oggi</div><div class="v" id="dRain">--</div><div class="s" id="dRainS">&nbsp;</div></div>
-            <div class="tile"><div class="k">Luce</div><div class="v" id="dSun">--</div><div class="s" id="dSunS">&nbsp;</div></div>
-          </div>
+          <div class="widgets" id="widgets"><span class="loading">Carico…</span></div>
         </div>
       </div>
     </div>
@@ -693,18 +742,19 @@ function kind(code, isDay = 1) {
   if (code >= 95) return "storm";
   return "rain";
 }
-const SUN = '<circle cx="32" cy="32" r="11" fill="#FFD25A"/><g stroke="#FFD25A" stroke-width="3.5" stroke-linecap="round"><path d="M32 8v6M32 50v6M8 32h6M50 32h6M15 15l4.2 4.2M44.8 44.8 49 49M15 49l4.2-4.2M44.8 19.2 49 15"/></g>';
+const SUN = '<circle cx="32" cy="32" r="11" fill="#FFD25A"/><g class="ic-rays" stroke="#FFD25A" stroke-width="3.5" stroke-linecap="round"><path d="M32 8v6M32 50v6M8 32h6M50 32h6M15 15l4.2 4.2M44.8 44.8 49 49M15 49l4.2-4.2M44.8 19.2 49 15"/></g>';
 const MOON = '<path class="mo" d="M40 12a20 20 0 1 0 12 30A16 16 0 0 1 40 12z" fill="#E8EEFF"/>';
-const CLOUD = (y = 0, fill = "#F2F6FA", cls = "cl") => `<path class="${cls}" transform="translate(0 ${y})" d="M20 46h26a10 10 0 0 0 0-20 13 13 0 0 0-25-3 9 9 0 0 0-1 23z" fill="${fill}"/>`;
+// la nuvola sta in un gruppo: l'animazione muove il gruppo senza toccare lo spostamento della nuvola
+const CLOUD = (y = 0, fill = "#F2F6FA", cls = "cl") => `<g class="ic-cloud"><path class="${cls}" transform="translate(0 ${y})" d="M20 46h26a10 10 0 0 0 0-20 13 13 0 0 0-25-3 9 9 0 0 0-1 23z" fill="${fill}"/></g>`;
 const ICONS = {
   sun: SUN, moon: MOON,
   partly: '<g transform="translate(-8 -8) scale(.8)">' + SUN + '</g>' + CLOUD(4),
   partlyNight: '<g transform="translate(-6 -8) scale(.75)">' + MOON + '</g>' + CLOUD(4),
   cloud: CLOUD(0, "#E3E9F0"),
   fog: CLOUD(-6, "#DDE3E8") + '<g class="fl" stroke="#DDE3E8" stroke-width="3.5" stroke-linecap="round"><path d="M14 48h36M20 55h28"/></g>',
-  rain: CLOUD(-6, "#DCE4EC") + '<g stroke="#7CC4FF" stroke-width="3.5" stroke-linecap="round"><path d="M24 46l-3 8M33 46l-3 8M42 46l-3 8"/></g>',
+  rain: CLOUD(-6, "#DCE4EC") + '<g class="ic-rain" stroke="#7CC4FF" stroke-width="3.5" stroke-linecap="round"><path d="M24 46l-3 8"/><path d="M33 46l-3 8"/><path d="M42 46l-3 8"/></g>',
   snow: CLOUD(-6, "#EEF3F8") + '<g class="sn" fill="#FFFFFF"><circle cx="23" cy="50" r="2.6"/><circle cx="32" cy="55" r="2.6"/><circle cx="41" cy="50" r="2.6"/></g>',
-  storm: CLOUD(-6, "#C9CFDA", "cl dk") + '<path d="M34 40l-8 12h6l-3 9 10-13h-6l3-8z" fill="#FFD25A"/>'
+  storm: CLOUD(-6, "#C9CFDA", "cl dk") + '<path class="ic-bolt" d="M34 40l-8 12h6l-3 9 10-13h-6l3-8z" fill="#FFD25A"/>'
 };
 const icon = (code, isDay) => ICONS[kind(code, isDay)];
 const windArrow = deg => `<svg class="mi" viewBox="0 0 12 12" style="transform:rotate(${deg + 180}deg)" aria-hidden="true"><path d="M6 11V1M2.5 4.5 6 1l3.5 3.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -1017,21 +1067,67 @@ function renderNow() {
   $("cNow").textContent = WMO[c.weather_code] ?? "—";
   $("nowMeta").textContent = `Percepita ${rnd(c.apparent_temperature)}° · max ${rnd(D.temperature_2m_max[i])}° · min ${rnd(D.temperature_2m_min[i])}°`;
   $("iNow").innerHTML = icon(c.weather_code, c.is_day);
-  $("dFeels").textContent = rnd(c.apparent_temperature) + "°";
-  const fd = c.apparent_temperature - c.temperature_2m;
-  $("dFeelsS").textContent = Math.abs(fd) < 1.5 ? "come quella reale" : fd < 0 ? `${rnd(-fd)}° in meno` : `${rnd(fd)}° in più`;
-  $("dWind").textContent = `${rnd(c.wind_speed_10m)} km/h ${cardinal(c.wind_direction_10m)}`;
-  $("dGust").textContent = `raffiche ${rnd(c.wind_gusts_10m)} km/h`;
-  $("dHum").textContent = rnd(c.relative_humidity_2m) + "%";
-  $("dDew").textContent = `punto di rugiada ${rnd(c.dew_point_2m)}°`;
-  const uvMax = D.uv_index_max[i] ?? 0;
-  $("dUv").textContent = fmt1(c.uv_index ?? 0);
-  $("dUvS").textContent = `massimo oggi ${fmt1(uvMax)} (${uvMax < 3 ? "basso" : uvMax < 6 ? "moderato" : uvMax < 8 ? "alto" : uvMax < 11 ? "molto alto" : "estremo"})`;
-  $("dRain").textContent = fmt1(D.precipitation_sum[i] ?? 0) + " mm";
-  $("dRainS").textContent = `probabilità massima ${D.precipitation_probability_max[i] ?? 0}%`;
-  $("dSun").textContent = `${D.sunrise[i].slice(11, 16)} – ${D.sunset[i].slice(11, 16)}`;
-  $("dSunS").textContent = "alba e tramonto";
+  $("widgets").innerHTML = widgets(c, D, i);
   renderSky();
+}
+
+/* ---------- Widget di "Adesso": arco del sole, bussola del vento, UV, umidità, pioggia di oggi ---------- */
+const UV_BANDS = [[0, 3, "#2fbf71"], [3, 6, "#f2c62f"], [6, 8, "#f08a3c"], [8, 11, "#e5484d"], [11, 12, "#a855f7"]];   // scala di rischio OMS
+const uvWord = v => v < 3 ? "basso" : v < 6 ? "moderato" : v < 8 ? "alto" : v < 11 ? "molto alto" : "estremo";
+const pt = (cx, cy, r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy - r * Math.sin(deg * Math.PI / 180)];
+// arco da un angolo all'altro in senso orario (180 = sinistra, 90 = in alto, 0 = destra)
+function arc(cx, cy, r, a0, a1) {
+  const [x0, y0] = pt(cx, cy, r, a0), [x1, y1] = pt(cx, cy, r, a1);
+  return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)}`;
+}
+const durata = m => m >= 60 ? `${Math.floor(m / 60)} h ${hh(m % 60)}` : `${m} min`;
+const DROP_PATH = "M32 6C24 18 16 28 16 39a16 16 0 0 0 32 0C48 28 40 18 32 6z";
+
+function widgets(c, D, i) {
+  // luce: il sole percorre l'arco dall'alba al tramonto
+  const rise = new Date(D.sunrise[i]).getTime(), set = new Date(D.sunset[i]).getTime(), now = Date.now();
+  const day = now >= rise && now <= set, p = Math.min(1, Math.max(0, (now - rise) / (set - rise))), sa = 180 - 180 * p;
+  const [sx, sy] = pt(62, 56, 48, sa);
+  const luce = day ? `tramonto tra ${durata(Math.round((set - now) / 6e4))}`
+    : now < rise ? `alba tra ${durata(Math.round((rise - now) / 6e4))}` : `domani alba alle ${D.sunrise[i + 1]?.slice(11, 16) ?? "--"}`;
+  const sun = `<div class="wd wide"><svg viewBox="0 0 124 62" aria-hidden="true">
+      <path class="w-hor" d="M4 56H120"/><path class="w-track" d="${arc(62, 56, 48, 180, 0)}"/>
+      ${day && p > .01 ? `<path class="w-sun" d="${arc(62, 56, 48, 180, sa)}"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="6.5" fill="#FFD25A"/>`
+        : `<circle class="w-off" cx="${now < rise || !day && p < .5 ? 14 : 110}" cy="56" r="5"/>`}
+    </svg><div><span class="k">Luce</span><b>${D.sunrise[i].slice(11, 16)} – ${D.sunset[i].slice(11, 16)}</b><small>${luce}</small></div></div>`;
+
+  // vento: la freccia indica dove va il vento, il testo da dove viene
+  const dir = c.wind_direction_10m;
+  const wind = `<div class="wd"><svg viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="w-track" cx="32" cy="32" r="27"/>
+      ${["N", "E", "S", "O"].map((l, k) => { const [lx, ly] = pt(32, 32, 21, 90 - k * 90); return `<text class="w-card" x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="middle">${l}</text>`; }).join("")}
+      <g transform="rotate(${(dir + 180) % 360} 32 32)"><path class="w-arrow" d="M32 19l5 10h-3.2v15h-3.6V29H27z"/></g>
+    </svg><div><span class="k">Vento</span><b>${rnd(c.wind_speed_10m)} km/h</b><small>da ${cardinal(dir)} · raffiche ${rnd(c.wind_gusts_10m)}</small></div></div>`;
+
+  // UV: semicerchio con la scala di rischio e il segno sul valore attuale
+  const uv = c.uv_index ?? 0, uvMax = D.uv_index_max[i] ?? 0, ang = v => 180 - 180 * Math.min(v, 12) / 12;
+  const [ux, uy] = pt(32, 36, 26, ang(uv));
+  const uvw = `<div class="wd"><svg viewBox="0 0 64 42" aria-hidden="true">
+      ${UV_BANDS.map(([a, b, col]) => `<path class="w-band" stroke="${col}" d="${arc(32, 36, 26, ang(a), ang(b))}"/>`).join("")}
+      <circle class="w-needle" cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="4.5"/>
+    </svg><div><span class="k">Indice UV</span><b>${fmt1(uv)} <em>${uvWord(uv)}</em></b><small>massimo oggi ${fmt1(uvMax)}</small></div></div>`;
+
+  // umidità: la goccia si riempie
+  const hum = c.relative_humidity_2m;
+  const humw = `<div class="wd"><svg viewBox="0 0 64 64" aria-hidden="true">
+      <defs><clipPath id="wDrop"><path d="${DROP_PATH}"/></clipPath></defs>
+      <rect class="w-water" clip-path="url(#wDrop)" x="0" y="${(55 - 49 * hum / 100).toFixed(1)}" width="64" height="64"/>
+      <path class="w-track" d="${DROP_PATH}"/>
+    </svg><div><span class="k">Umidità</span><b>${rnd(hum)}%</b><small>punto di rugiada ${rnd(c.dew_point_2m)}°</small></div></div>`;
+
+  // pioggia di oggi: pluviometro pieno a 20 mm
+  const mm = D.precipitation_sum[i] ?? 0, pmax = D.precipitation_probability_max[i] ?? 0, f = Math.min(1, mm / 20);
+  const rainw = `<div class="wd"><svg viewBox="0 0 64 64" aria-hidden="true">
+      ${f > 0 ? `<rect class="w-water" x="22" y="${(56 - 48 * f).toFixed(1)}" width="20" height="${(48 * f).toFixed(1)}" rx="3"/>` : ""}
+      <rect class="w-track" x="22" y="8" width="20" height="48" rx="4"/>${[20, 32, 44].map(y => `<path class="w-tick" d="M42 ${y}h5"/>`).join("")}
+    </svg><div><span class="k">Pioggia oggi</span><b>${fmt1(mm)} mm</b><small>probabilità fino al ${pmax}%</small></div></div>`;
+
+  return sun + wind + uvw + humw + rainw;
 }
 
 /* ---------- Località ---------- */
@@ -1084,20 +1180,48 @@ function renderDays() {
   }).join("");
 }
 
+// curva morbida che passa per tutti i punti (Catmull-Rom convertita in curve di Bézier)
+function smooth(pts) {
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let k = 0; k < pts.length - 1; k++) {
+    const p0 = pts[k - 1] ?? pts[k], p1 = pts[k], p2 = pts[k + 1], p3 = pts[k + 2] ?? p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 function renderHours(h) {
   const H = h.hourly;
   const now = new Date(), key = `${localDate(now)}T${hh(now.getHours())}`;
   const start = Math.max(0, H.time.findIndex(t => t.startsWith(key)));
-  $("hours").innerHTML = H.time.slice(start, start + 24).map((t, n) => {
-    const i = start + n, prob = H.precipitation_probability[i] ?? 0;
-    return `<div class="hour${n === 0 ? " now" : ""}" title="${WMO[H.weather_code[i]] ?? ""}">
-      <div class="h">${n === 0 ? "Ora" : t.slice(11, 13)}</div>
-      <svg viewBox="0 0 64 64" aria-hidden="true">${icon(H.weather_code[i], H.is_day[i])}</svg>
-      <div class="t">${rnd(H.temperature_2m[i])}°</div>
-      <div class="p">${prob >= 10 ? prob + "%" : ""}</div>
-      <div class="g">${rnd(H.wind_gusts_10m[i] ?? 0)} km/h</div>
-    </div>`;
+  const idx = H.time.slice(start, start + 24).map((_, k) => start + k);
+  // colonne da 42 px: ora e icona in alto, curva della temperatura al centro, barre della pioggia e raffiche in basso
+  // senza pioggia prevista le barre non servono: il grafico si accorcia
+  const rainy = idx.some(i => (H.precipitation_probability[i] ?? 0) >= 10);
+  const CW = 42, W = idx.length * CW, Y0 = 84, Y1 = 142, BAR0 = rainy ? 198 : 166, HT = BAR0 + 32, BARH = 34;
+  const temps = idx.map(i => H.temperature_2m[i]);
+  const lo = Math.min(...temps), span = Math.max(1, Math.max(...temps) - lo);
+  const x = k => k * CW + CW / 2, y = t => Y1 - (t - lo) / span * (Y1 - Y0);
+  const pts = temps.map((t, k) => [x(k), y(t)]), line = smooth(pts);
+  const night = idx.map((i, k) => H.is_day[i] ? "" : `<rect class="night" x="${k * CW}" y="0" width="${CW}" height="${HT}"/>`).join("");
+  const cols = idx.map((i, k) => {
+    const prob = H.precipitation_probability[i] ?? 0, mm = H.precipitation[i] ?? 0, bh = prob / 100 * BARH;
+    return `<text class="hl" x="${x(k)}" y="16" text-anchor="middle">${k === 0 ? "Ora" : H.time[i].slice(11, 13)}</text>
+      <g transform="translate(${x(k) - 14} 24) scale(.4375)">${icon(H.weather_code[i], H.is_day[i])}</g>
+      <text class="tl" x="${x(k)}" y="${(pts[k][1] - 10).toFixed(1)}" text-anchor="middle">${rnd(temps[k])}°</text>
+      ${bh >= 1 ? `<rect class="bar" x="${x(k) - 9}" y="${(BAR0 - bh).toFixed(1)}" width="18" height="${bh.toFixed(1)}" rx="3" opacity="${(.3 + .7 * Math.min(1, mm / 2)).toFixed(2)}"/>` : ""}
+      ${prob >= 10 ? `<text class="pl" x="${x(k)}" y="${(BAR0 - bh - 4).toFixed(1)}" text-anchor="middle">${prob}%</text>` : ""}
+      <text class="gl" x="${x(k)}" y="${BAR0 + 18}" text-anchor="middle">${rnd(H.wind_gusts_10m[i] ?? 0)}</text>`;
   }).join("");
+  $("hours").innerHTML = `<svg class="hchart" width="${W}" height="${HT}" viewBox="0 0 ${W} ${HT}" role="img" aria-label="Temperatura e pioggia nelle prossime 24 ore">
+    <defs><linearGradient id="hGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ink);stop-opacity:.16"/><stop offset="1" style="stop-color:var(--ink);stop-opacity:0"/></linearGradient></defs>
+    ${night}<rect class="nowc" x="2" y="2" width="${CW - 4}" height="${HT - 4}" rx="10"/>
+    <line class="base" x1="0" x2="${W}" y1="${BAR0}" y2="${BAR0}"/>
+    <path class="area" d="${line} L${x(idx.length - 1)},${Y1 + 18} L${x(0)},${Y1 + 18} Z" fill="url(#hGrad)"/>
+    <path class="line" pathLength="1" d="${line}"/>
+    ${cols}
+  </svg>`;
 }
 
 /* ---------- Accordo tra i quattro modelli sulle prossime 24 ore (per esperti) ---------- */
