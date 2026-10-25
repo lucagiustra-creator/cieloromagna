@@ -18,12 +18,12 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c1624">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eef2f7">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="assets/logo/icon.svg" type="image/svg+xml">
-<link rel="icon" href="assets/logo/icon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
-<link rel="preload" href="assets/fonts/fraunces-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/leaflet/leaflet.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/logo/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/logo/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/fraunces-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/leaflet/leaflet.css">
 <style>
 /* Meteo della Romagna: in cima il riepilogo della località preferita (adesso, oggi, domani, allerta, fiume),
    sotto tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
@@ -33,8 +33,8 @@
    Identità: logo con sole e fiumi (assets/logo),
    Fraunces per i titoli (in assets/fonts, licenza OFL). Tema scuro o chiaro secondo il dispositivo;
    in testata un cielo che segue ora e tempo della località scelta. */
-@font-face { font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap; src: url("assets/fonts/fraunces-latin-700-normal.woff2") format("woff2"); }
-@font-face { font-family: "Fraunces"; font-style: italic; font-weight: 600; font-display: swap; src: url("assets/fonts/fraunces-latin-600-italic.woff2") format("woff2"); }
+@font-face { font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap; src: url("/assets/fonts/fraunces-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Fraunces"; font-style: italic; font-weight: 600; font-display: swap; src: url("/assets/fonts/fraunces-latin-600-italic.woff2") format("woff2"); }
 :root {
   color-scheme: dark;
   --bg: #0c1624;
@@ -405,6 +405,12 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .foot { margin-top: 72px; padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .75rem; line-height: 1.6; }
 .foot p { margin: 0 0 10px; }
 .foot a { color: var(--ink-soft); }
+.seo { margin-bottom: 26px; display: grid; gap: 10px; }
+.seo p { margin: 0; color: var(--ink-soft); font-size: .84rem; max-width: 52rem; }
+.seo nav { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .78rem; }
+.seo nav b { color: var(--ink-soft); font-weight: 600; margin-right: 4px; }
+.seo nav a { color: var(--ink-faint); text-decoration: none; }
+.seo nav a:hover, .seo nav a[aria-current] { color: var(--ink); text-decoration: underline; }
 .foot .warn-note { color: var(--ink-soft); font-size: .82rem; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -418,7 +424,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 
 <nav class="nav">
   <div class="container">
-    <a class="brand" href="./">
+    <a class="brand" href="/">
       <svg viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="crNav"><circle cx="32" cy="32" r="31"/></clipPath></defs><g clip-path="url(#crNav)"><rect width="64" height="64" fill="#a9d6f2"/><circle cx="41" cy="23" r="10.5" fill="#f2a33a"/><path d="M13.5 33h16a5 5 0 0 0 0-10 7.5 7.5 0 0 0-14.3-1.6A5.3 5.3 0 0 0 13.5 33z" fill="#fff"/><path d="M0 40Q16 34 32 40T64 40V64H0Z" fill="#4a97d4"/><path d="M0 47.5Q16 41.5 32 47.5T64 47.5V64H0Z" fill="#2c74b6"/><path d="M0 55Q16 49 32 55T64 55V64H0Z" fill="#1d5492"/><circle cx="22" cy="48.5" r="2.7" fill="#b4532a" stroke="#fff" stroke-width="1.4"/></g></svg>
       <span><b>Cielo Romagna</b><small>dalla costa all'Appennino</small></span>
     </a>
@@ -599,6 +605,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
   </section>
 
   <footer class="foot">
+    <!--SEO-->
     <p class="warn-note"><b>Cielo Romagna non è un servizio ufficiale.</b> È un progetto personale e non commerciale che mette insieme dati pubblici: previsioni e livelli possono essere sbagliati o in ritardo. Per allerte e decisioni fa fede <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo Emilia-Romagna</a>; in emergenza chiama il 112.</p>
     <p>Allerte e livelli idrometrici: <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo Emilia-Romagna</a> (ARPAE e Agenzia regionale per la sicurezza territoriale e la protezione civile), licenza <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>, ripresi ogni 15 minuti e rielaborati in grafici e riepiloghi; i nomi delle zone sono descrittivi, i codici sono quelli ufficiali ·
     Previsioni: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) con i modelli ICON-2I di ItaliaMeteo-ARPAE, ICON-D2 di DWD, AROME di Météo-France ed ECMWF ·
@@ -607,7 +614,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
   </footer>
 </main>
 
-<script src="assets/leaflet/leaflet.js"></script>
+<!--PAGINA--><script src="/assets/leaflet/leaflet.js"></script>
 <script>
 // località: coordinate del centro, gruppo, zona di allertamento ufficiale del comune e fiume di riferimento
 const PLACES = [
@@ -732,16 +739,17 @@ const store = {
 };
 
 /* ---------- Stato: località scelta e preferita, dati delle località, allerte e fiumi ---------- */
-// all'apertura: località nel link, altrimenti la preferita, altrimenti l'ultima vista, altrimenti Faenza
+// all'apertura: località nel link (vecchio ?l=), poi quella della pagina (/faenza/), la preferita, l'ultima vista, Faenza
+const PAGE = window.CR_PAGE ?? {};
 const placeById = id => PLACES.find(p => p.id === id);
 let fav = placeById(store.get("cr-preferita")) ?? null;
-let sel = placeById(new URLSearchParams(location.search).get("l")) ?? fav ?? placeById(store.get("cr-localita")) ?? placeById(DEFAULT_PLACE);
+let sel = placeById(new URLSearchParams(location.search).get("l")) ?? placeById(PAGE.place) ?? fav ?? placeById(store.get("cr-localita")) ?? placeById(DEFAULT_PLACE);
 let overview = null;                // Open-Meteo, una voce per ogni località (stesso ordine di PLACES)
 let hourly = null, models = null;   // ore e modelli della località scelta
 let dati = null;                    // dati.json: allerte, bollettini e fiumi scritti dalla GitHub Action
 let alertDay = "oggi";
 let radarRainHere = false;          // il radar aggiornato vede pioggia sulla località scelta: il cielo in testata piove
-let riverSel = null, riverPicked = false;
+let riverSel = PAGE.river ?? null, riverPicked = !!PAGE.river;
 let loadedAt = 0, datiAt = 0;       // quando la pagina ha scaricato previsioni e dati.json
 const ov = p => overview?.[PLACES.indexOf(p)];
 
@@ -751,7 +759,8 @@ function select(id) {
   sel = p;
   store.set("cr-localita", p.id);
   const u = new URL(location.href);
-  u.searchParams.set("l", p.id);
+  u.searchParams.delete("l");
+  u.pathname = `/${p.id}/`;
   history.replaceState(null, "", u);
   radarRainHere = false; hourly = null; models = null;
   renderNow(); renderSummary(); renderPlaces(); renderDays(); updateMarkers();
@@ -1420,7 +1429,7 @@ function renderRivers() {
 }
 
 async function loadDati() {
-  try { dati = await getJSON("dati.json?t=" + Date.now()); datiAt = Date.now(); }
+  try { dati = await getJSON("/dati.json?t=" + Date.now()); datiAt = Date.now(); }
   catch { dati = null; }
   renderAlerts(); renderRivers(); renderAlertBanner(); renderSummaryChips();
 }
@@ -1430,7 +1439,7 @@ const TABS = ["previsioni", "allerte", "fiumi"];
 function route(scroll) {
   const id = location.hash.slice(1);
   const target = id ? document.getElementById(id) : null;
-  const tab = TABS.includes(id) ? id : target?.closest(".tab")?.id ?? "previsioni";
+  const tab = TABS.includes(id) ? id : target?.closest(".tab")?.id ?? PAGE.tab ?? "previsioni";
   for (const t of TABS) $(t).hidden = t !== tab;
   document.querySelectorAll("[data-tab]").forEach(a => a.dataset.tab === tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   if (tab === "previsioni") map.invalidateSize();
@@ -1461,7 +1470,7 @@ $("install").addEventListener("click", async () => {
   if (installEvt) { installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("install").hidden = true; }
   else $("installTip").hidden = !$("installTip").hidden;
 });
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { /* senza service worker il sito funziona lo stesso */ });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => { /* senza service worker il sito funziona lo stesso */ });
 
 /* ---------- Avvio ---------- */
 let lastLoad = 0;

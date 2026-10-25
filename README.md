@@ -14,6 +14,8 @@ Progetto personale e non commerciale. **Non è un servizio ufficiale**: per alle
   (allerte di oggi e domani per le zone A1, A2, B1, B2, C2, D1 e livelli di 43 idrometri)
   e ripubblica il sito su GitHub Pages. Se ARPAE non risponde riusa l'ultimo `dati.json` pubblicato;
   se i livelli restano fermi più di due ore la Action fallisce e GitHub manda una mail.
+- `scripts/pagine.mjs` genera da `index.html` la home, una pagina per località (`/faenza/`) e una per fiume
+  (`/fiumi/lamone/`) con titoli e testi propri per i motori di ricerca, più `sitemap.xml` e `robots.txt`.
 - `.github/workflows/keepalive.yml` fa un commit al mese per non far sospendere le schedule.
 - `manifest.webmanifest` e `sw.js` rendono il sito installabile come app; il service worker non mette niente in cache.
 - La località preferita (stellina) resta solo nel browser di chi la sceglie (`localStorage`).

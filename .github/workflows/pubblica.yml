@@ -37,8 +37,9 @@ jobs:
       - name: Prepara il sito
         run: |
           mkdir _site
-          cp -r index.html assets manifest.webmanifest sw.js _site/
+          cp -r assets manifest.webmanifest sw.js _site/
           if [ -f dati.json ]; then cp dati.json _site/; fi
+          node scripts/pagine.mjs _site      # home, pagine per località e per fiume, sitemap e robots
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
