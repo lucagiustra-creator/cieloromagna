@@ -1,12 +1,15 @@
 name: Messaggio Telegram
+run-name: Messaggio Telegram${{ github.event_name == 'workflow_dispatch' && format(' ({0})', inputs.modo) || '' }}
 
-# Messaggio del mattino nel canale Telegram alle 7 italiane: gira alle 5 e alle 6 UTC e lo script invia solo
-# da quella giusta per l'ora legale. A mano si può lanciare in modo "prova".
+# Messaggio del mattino nel canale Telegram alle 7 italiane. Lo lancia cron-job.org alle 7 in punto via API
+# (workflow_dispatch con modo "mattina"), perché le schedule di GitHub arrivano in ritardo o saltano.
+# Le cron qui sotto sono la riserva delle 7:40: lo script invia solo da quella giusta per l'ora legale,
+# e solo se oggi non è già andato a buon fine un lancio "mattina". A mano si può lanciare in modo "prova".
 # Il token del bot sta nel secret TELEGRAM_BOT_TOKEN; il canale nella variabile TELEGRAM_CHAT (se manca lo trova lo script).
 on:
   schedule:
-    - cron: "0 5 * * *"
-    - cron: "0 6 * * *"
+    - cron: "40 5 * * *"
+    - cron: "40 6 * * *"
   workflow_dispatch:
     inputs:
       modo:
@@ -15,17 +18,30 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   invia:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - name: Già inviato oggi?
+        id: gia
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh run list -R "$GITHUB_REPOSITORY" -w telegram.yml -L 20 --json displayTitle,conclusion,createdAt \
+            --jq "[.[] | select(.displayTitle == \"Messaggio Telegram (mattina)\" and .conclusion == \"success\" and (.createdAt | startswith(\"$(date -u +%F)\")))] | length")
+          if [ "$n" -gt 0 ]; then echo "oggi il messaggio è già partito, non invio"; echo "inviato=si" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/checkout@v4
+        if: steps.gia.outputs.inviato != 'si'
       - uses: actions/setup-node@v4
+        if: steps.gia.outputs.inviato != 'si'
         with:
           node-version: 24
-      - run: node scripts/telegram.mjs "${{ github.event.inputs.modo || 'mattina' }}"
+      - if: steps.gia.outputs.inviato != 'si'
+        run: node scripts/telegram.mjs "${{ github.event.inputs.modo || 'mattina' }}"
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}

@@ -10,7 +10,7 @@ const SITE = "cieloromagna.it";
 const DRY = process.env.DRY === "1";           // solo stampa il messaggio, senza inviarlo
 if (!TOKEN && !DRY) throw new Error("manca TELEGRAM_BOT_TOKEN");
 
-// il workflow gira alle 5 e alle 6 UTC: le 7 italiane sono le 6 UTC d'inverno e le 5 d'estate, si invia solo dal cron giusto
+// la riserva gira alle 5:40 e alle 6:40 UTC (le 7:40 italiane sono le 6:40 UTC d'inverno e le 5:40 d'estate): si invia solo dal cron giusto
 if (MODE === "mattina" && process.env.SCHEDULE) {
   const romeHour = +new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hourCycle: "h23" }).format(new Date());
   const offset = (romeHour - new Date().getUTCHours() + 24) % 24;
