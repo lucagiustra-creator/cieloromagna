@@ -260,9 +260,9 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 /* ---------- Adesso: riquadri come quelli dell'app (percepita, pioggia, vento, sole, UV, umidità...) ---------- */
 .now-top { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; }
 .widgets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; grid-auto-flow: dense; }
-@media (min-width: 900px) { .widgets { grid-template-columns: repeat(4, minmax(0, 1fr)); } .wd { aspect-ratio: auto; min-height: 196px; } }
-.wd { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 168px; aspect-ratio: 1; padding: 14px 16px; overflow: hidden; }
-.wd.wide { grid-column: span 2; aspect-ratio: auto; }
+@media (min-width: 900px) { .widgets { grid-template-columns: repeat(4, minmax(0, 1fr)); } .wd { min-height: 196px; } }
+.wd { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 172px; padding: 14px 16px; overflow: hidden; }
+.wd.wide { grid-column: span 2; }
 .wd > * { flex-shrink: 0; }
 .wd .wv { display: block; margin-top: 8px; font-size: 2.1rem; font-weight: 500; line-height: 1.05; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .wd .wv small { font-size: 1.05rem; font-weight: 600; }
@@ -299,6 +299,15 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .gauge .ga { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 /* umidità e pioggia: piccolo riempimento */
 .w-water { fill: var(--rain); opacity: .6; }
+/* qualità dell'aria: scala europea dal verde acqua al viola */
+.aqbar { margin-top: 14px; background: linear-gradient(90deg, #50f0e6, #50ccaa 17%, #f0e641 33%, #ff5050 50%, #960032 67%, #7d2181 83%); }
+.wsub { display: block; margin-top: 6px; font-size: .72rem; color: var(--ink-faint); }
+/* medie: frase sotto il valore e confronto oggi / media in basso */
+.wd .wv3 { display: block; margin-top: 4px; font-size: .9rem; font-weight: 600; line-height: 1.25; }
+.mrows { margin: auto 0 0; padding-top: 6px; display: grid; gap: 1px; font-size: .82rem; }
+.mrows div { display: flex; justify-content: space-between; gap: 8px; }
+.mrows dt { color: var(--ink-faint); }
+.mrows dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
 /* luna: righe e disegno della fase */
 .moonw .wrows { grid-template-columns: minmax(0, 1fr) 104px; }
 .moonw .wrows svg { width: 104px; height: 104px; }
@@ -677,6 +686,8 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
     <p class="warn-note"><b>Cielo Romagna non è un servizio ufficiale.</b> È un progetto personale e non commerciale che mette insieme dati pubblici: previsioni e livelli possono essere sbagliati o in ritardo. Per allerte e decisioni fa fede <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo Emilia-Romagna</a>; in emergenza chiama il 112.</p>
     <p>Allerte e livelli idrometrici: <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo Emilia-Romagna</a> (ARPAE e Agenzia regionale per la sicurezza territoriale e la protezione civile), licenza <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>, ripresi ogni 15 minuti e rielaborati in grafici e riepiloghi; i nomi delle zone sono descrittivi, i codici sono quelli ufficiali ·
     Previsioni: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) con i modelli ICON-2I di ItaliaMeteo-ARPAE, ICON-D2 di DWD, AROME di Météo-France ed ECMWF ·
+    Qualità dell'aria: Open-Meteo con dati del Copernicus Atmosphere Monitoring Service (CAMS) ·
+    Medie 1991–2020: Open-Meteo, rianalisi ERA5 di Copernicus/ECMWF (CC BY 4.0) ·
     Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · Mappa: © Esri, © OpenStreetMap · Carattere Fraunces (SIL Open Font License).</p>
     <p>I contenuti rielaborati di questo sito sono distribuiti con la stessa licenza CC BY-NC-SA 4.0. Nessun cookie e nessun tracciamento: la località preferita resta solo sul tuo dispositivo, e la pagina chiede previsioni, radar e mappe direttamente a Open-Meteo, RainViewer ed Esri.</p>
   </footer>
@@ -819,6 +830,8 @@ let alertDay = "oggi";
 let radarRainHere = false;          // il radar aggiornato vede pioggia sulla località scelta: il cielo in testata piove
 let riverSel = PAGE.river ?? null, riverPicked = !!PAGE.river;
 let loadedAt = 0, datiAt = 0;       // quando la pagina ha scaricato previsioni e dati.json
+let air = null;                     // qualità dell'aria della località scelta (Open-Meteo, dati CAMS), con le ultime 24 ore
+let normali = null;                 // medie 1991-2020 di massima e minima per giorno dell'anno (assets/normali.json, da scripts/normali.mjs)
 const ov = p => overview?.[PLACES.indexOf(p)];
 
 function select(id) {
@@ -830,7 +843,7 @@ function select(id) {
   u.searchParams.delete("l");
   u.pathname = `/${p.id}/`;
   history.replaceState(null, "", u);
-  radarRainHere = false; hourly = null; models = null;
+  radarRainHere = false; hourly = null; models = null; air = null;
   renderNow(); renderSummary(); renderPlaces(); renderDays(); updateMarkers();
   if (!riverPicked) renderRivers();
   loadDetail();
@@ -841,12 +854,17 @@ function select(id) {
 const OM = "https://api.open-meteo.com/v1/forecast?";
 const overviewURL = () => OM + new URLSearchParams({
   latitude: PLACES.map(p => p.lat).join(","), longitude: PLACES.map(p => p.lon).join(","), timezone: "Europe/Rome", forecast_days: 7,
-  current: "temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day,uv_index,pressure_msl,visibility",
+  current: "temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day,uv_index,pressure_msl,visibility,cloud_cover",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max,sunrise,sunset"
 });
 const hourlyURL = p => OM + new URLSearchParams({
   latitude: p.lat, longitude: p.lon, timezone: "Europe/Rome", forecast_days: 2,
   hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m,is_day,pressure_msl"
+});
+// indice europeo della qualità dell'aria adesso e ora per ora da ieri, per il confronto con la stessa ora di ieri
+const airURL = p => "https://air-quality-api.open-meteo.com/v1/air-quality?" + new URLSearchParams({
+  latitude: p.lat, longitude: p.lon, timezone: "Europe/Rome", past_days: 1, forecast_days: 1,
+  current: "european_aqi,pm2_5,pm10,ozone,nitrogen_dioxide", hourly: "european_aqi"
 });
 const modelsURL = p => OM + new URLSearchParams({
   latitude: p.lat, longitude: p.lon, timezone: "Europe/Rome", forecast_days: 3,
@@ -1117,8 +1135,16 @@ const WI = {
   eye: '<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   gauge: '<circle cx="12" cy="12" r="9"/><path d="M12 12l4-4"/>',
   moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
-  day: '<path d="M12 3v3M3.5 12h2M18.5 12h2M6 6.5 4.6 5.1M18 6.5l1.4-1.4"/><path d="M7 17a5 5 0 0 1 10 0"/><path d="M3 21h18"/>'
+  day: '<path d="M12 3v3M3.5 12h2M18.5 12h2M6 6.5 4.6 5.1M18 6.5l1.4-1.4"/><path d="M7 17a5 5 0 0 1 10 0"/><path d="M3 21h18"/>',
+  air: '<circle cx="6" cy="6" r="1"/><circle cx="12" cy="6" r="1"/><circle cx="18" cy="6" r="1"/><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><circle cx="6" cy="18" r="1"/><circle cx="12" cy="18" r="1"/><circle cx="18" cy="18" r="1"/>',
+  avg: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/>',
+  cloud: '<path d="M7 18h10a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18z"/>'
 };
+// indice europeo della qualità dell'aria (EAQI): soglie e colori ufficiali dell'Agenzia europea dell'ambiente
+const AQI = [[20, "Buona"], [40, "Discreta"], [60, "Moderata"], [80, "Scadente"], [100, "Molto scadente"], [Infinity, "Estremamente scadente"]];
+const aqiWord = v => AQI.find(([max]) => v <= max)[1];
+// giorno dell'anno su un anno bisestile, come in scripts/normali.mjs (1 gennaio = 0, 29 febbraio = 59)
+const doy = s => Math.round((Date.UTC(2000, +s.slice(5, 7) - 1, +s.slice(8, 10)) - Date.UTC(2000, 0, 1)) / 864e5);
 const wk = (ic, text) => `<span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WI[ic]}</svg>${text}</span>`;
 
 // fase della luna dal ciclo medio (29,53 giorni) a partire da una luna nuova nota, come nel messaggio Telegram del mattino
@@ -1230,7 +1256,35 @@ function widgets(c, D, i) {
   const dayw = `<div class="wd card">${wk("day", "Durata del giorno")}<b class="wv">${durata(len)}</b>
       <p class="ws">${dd == null ? "" : dd === 0 ? "Domani uguale a oggi." : `Domani ${Math.abs(dd)} min in ${dd < 0 ? "meno" : "più"}.`}</p></div>`;
 
-  return feelw + rainw + windw + sunw + uvw + humw + visw + moonw + pressw + dayw;
+  // qualità dell'aria: giudizio, barra della scala europea, confronto con la stessa ora di ieri e inquinanti principali
+  let airw = "";
+  const A = air?.current;
+  if (A?.european_aqi != null) {
+    const H = air.hourly, k = H.time.indexOf(A.time.slice(0, 13) + ":00"), y = k >= 24 ? H.european_aqi[k - 24] : null;
+    const cmp = y == null ? "" : A.european_aqi - y >= 5 ? "peggiore" : y - A.european_aqi >= 5 ? "migliore" : "simile";
+    const pol = [["PM2,5", A.pm2_5], ["PM10", A.pm10], ["O₃", A.ozone], ["NO₂", A.nitrogen_dioxide]].filter(([, v]) => v != null).map(([n, v]) => `${n} ${rnd(v)}`).join(" · ");
+    airw = `<div class="wd wide card">${wk("air", "Qualità dell'aria")}<b class="wv">${aqiWord(A.european_aqi)} <small>${rnd(A.european_aqi)}</small></b>
+      <div class="uvbar aqbar"><i style="left:${(Math.min(A.european_aqi, 120) / 120 * 100).toFixed(1)}%"></i></div>
+      <p class="ws">${cmp ? `La qualità dell'aria è ${cmp} rispetto a ieri alla stessa ora.` : ""}<small class="wsub">${pol} µg/m³ · indice europeo, dati CAMS</small></p></div>`;
+  }
+
+  // medie: massima di oggi contro la media 1991-2020 dello stesso giorno
+  let avgw = "";
+  const N = normali?.luoghi?.[sel.id];
+  if (N) {
+    const tmx = rnd(D.temperature_2m_max[i]), nmx = rnd(N.max[doy(D.time[i])]), dlt = tmx - nmx;
+    avgw = `<div class="wd card">${wk("avg", "Medie")}<b class="wv">${dlt > 0 ? "+" : dlt < 0 ? "−" : ""}${Math.abs(dlt)}°</b>
+      <span class="wv3">${dlt > 0 ? "sopra la massima media" : dlt < 0 ? "sotto la massima media" : "come la massima media"}</span>
+      <dl class="mrows"><div><dt>Oggi</dt><dd>Max ${tmx}°</dd></div><div><dt>Media</dt><dd>Max ${nmx}°</dd></div></dl></div>`;
+  }
+
+  // nuvole: copertura del cielo in percentuale
+  const cc = c.cloud_cover;
+  const cloudw = cc == null ? "" : `<div class="wd card">${wk("cloud", "Nuvole")}<b class="wv">${rnd(cc)}%</b>
+      <p class="ws">${cc <= 10 ? "Cielo sereno." : cc <= 40 ? "Poche nuvole." : cc <= 70 ? "Parzialmente nuvoloso." : cc <= 90 ? "Molto nuvoloso." : "Cielo coperto."}</p></div>`;
+
+  // ordine pensato per la griglia: a due colonne sul telefono, a quattro su schermo largo, senza buchi
+  return airw + feelw + avgw + windw + sunw + uvw + rainw + humw + visw + cloudw + moonw + pressw + dayw;
 }
 
 /* ---------- Località: ogni card ha il cielo della sua località, come l'elenco delle città dell'app ---------- */
@@ -1410,12 +1464,14 @@ let detailSeq = 0;
 async function loadDetail() {
   const seq = ++detailSeq, p = sel;
   $("trustTitle").textContent = "Confronto i modelli…";
-  const [h, m] = await Promise.allSettled([getJSON(hourlyURL(p)), getJSON(modelsURL(p))]);
+  const [h, m, a] = await Promise.allSettled([getJSON(hourlyURL(p)), getJSON(modelsURL(p)), getJSON(airURL(p))]);
   if (seq !== detailSeq) return;
   hourly = h.status === "fulfilled" ? h.value : null;
   models = m.status === "fulfilled" ? m.value : null;
-  // con le ore arriva anche la tendenza della pressione nei riquadri di "Adesso"
-  if (hourly) { renderHours(hourly); renderNow(); }
+  air = a.status === "fulfilled" ? a.value : null;
+  // con le ore arrivano la tendenza della pressione e la qualità dell'aria nei riquadri di "Adesso"
+  renderNow();
+  if (hourly) renderHours(hourly);
   else $("hours").innerHTML = `<span class="loading">Previsioni orarie non raggiungibili in questo momento.</span>`;
   if (models) renderModels(models);
   else $("trustTitle").textContent = "Confronto tra modelli non disponibile in questo momento";
@@ -1729,6 +1785,8 @@ $("reload").addEventListener("click", () => { load(); loadRadar(); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastLoad > RADAR_MS) { load(); loadRadar(); } });
 setInterval(load, REFRESH_MS);
 setInterval(loadRadar, RADAR_MS);
+// le medie non cambiano: si scaricano una volta sola
+getJSON("/assets/normali.json").then(j => { normali = j; renderNow(); }).catch(() => { /* senza medie manca solo il riquadro */ });
 route(!!location.hash);
 renderNow();
 renderFav();
