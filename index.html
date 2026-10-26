@@ -30,10 +30,11 @@
    tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
    Colori: testo bianco sul vetro; i colori caldi solo per il sole e per la scala del rischio verde-giallo-arancione-rosso
    di allerte e fiumi; pioggia in azzurro; le barre dei 7 giorni colorate dalla temperatura come sull'iPhone.
-   Identità: logo con sole e fiumi (assets/logo), Fraunces solo per il nome del sito (in assets/fonts, licenza OFL);
+   Identità: logo con sole e fiumi (assets/logo), Fraunces per il nome del sito e Inter per il titolo (in assets/fonts, licenza OFL);
    per il resto il carattere di sistema, che sull'iPhone è lo stesso dell'app Meteo. */
 @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap; src: url("/assets/fonts/fraunces-latin-700-normal.woff2") format("woff2"); }
 @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 600; font-display: swap; src: url("/assets/fonts/fraunces-latin-600-italic.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("/assets/fonts/inter-latin-600-normal.woff2") format("woff2"); }
 :root {
   color-scheme: dark;
   --bg: #2a5b93;
@@ -114,12 +115,12 @@ button, select { font: inherit; color: inherit; }
 .pill.live { color: #c4f7d8; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; animation: blink 2.4s infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 600; font-size: .98rem; letter-spacing: 0; color: rgba(255,255,255,.85); }
+h1 { margin: 0; font-family: "Inter", var(--font); font-weight: 600; font-size: .98rem; letter-spacing: -.01em; color: rgba(255,255,255,.85); }
 .place-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; min-width: 0; }
 .fav { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 1.05rem; line-height: 1; cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .fav[aria-pressed="true"] { color: #ffd25a; background: rgba(255,210,90,.18); }
 .picker { appearance: none; -webkit-appearance: none; min-width: 0; max-width: 100%; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23fff' stroke-opacity='.75' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 2px center; border: 0; padding: 0 24px 0 0; font-family: var(--font); font-weight: 500; font-size: clamp(2rem, 7vw, 2.5rem); letter-spacing: -.01em; color: #fff; cursor: pointer; text-overflow: ellipsis; field-sizing: content; border-radius: 0; text-align: center; }
-.picker option, .picker optgroup { font-family: var(--font); font-size: 1rem; color: #1f1b17; background: #fff; text-shadow: none; }
+.picker option { font-family: var(--font); font-size: 1rem; color: #1f1b17; background: #fff; text-shadow: none; }
 /* il bottone della stella fa da contrappeso a destra, così il nome resta al centro */
 .place-row::after { content: ""; width: 34px; flex: none; }
 .now-hero { display: grid; justify-items: center; gap: 2px; }
@@ -317,13 +318,11 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .tile .s { font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
 
 /* ---------- Località: card con il proprio cielo, come l'elenco delle città dell'app ---------- */
-.group + .group { margin-top: 18px; }
-.group h3 { margin: 0 4px 8px; font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint); }
 .places { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 900px) { .places { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; } .place { flex: 0 0 168px; scroll-snap-align: start; } }
 .place { position: relative; text-align: left; background: linear-gradient(180deg, var(--p0, #2f7fd0), var(--p1, #7bb6ea)); border: 0; border-radius: 16px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; cursor: pointer; min-width: 0; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.18); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
 .place[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #fff; }
-.place .pn { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.place .pn { font-size: 1rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 .place .pc { grid-column: 1; font-size: .74rem; color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .place .pt { grid-column: 2; grid-row: 1 / span 2; font-size: 2.1rem; font-weight: 300; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .place .pd { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 6px; margin-top: 16px; font-size: .74rem; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -688,32 +687,71 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
     Previsioni: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) con i modelli ICON-2I di ItaliaMeteo-ARPAE, ICON-D2 di DWD, AROME di Météo-France ed ECMWF ·
     Qualità dell'aria: Open-Meteo con dati del Copernicus Atmosphere Monitoring Service (CAMS) ·
     Medie 1991–2020: Open-Meteo, rianalisi ERA5 di Copernicus/ECMWF (CC BY 4.0) ·
-    Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · Mappa: © Esri, © OpenStreetMap · Carattere Fraunces (SIL Open Font License).</p>
+    Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · Mappa: © Esri, © OpenStreetMap · Caratteri Fraunces e Inter (SIL Open Font License).</p>
     <p>I contenuti rielaborati di questo sito sono distribuiti con la stessa licenza CC BY-NC-SA 4.0. Nessun cookie e nessun tracciamento: la località preferita resta solo sul tuo dispositivo, e la pagina chiede previsioni, radar e mappe direttamente a Open-Meteo, RainViewer ed Esri.</p>
   </footer>
 </main>
 
 <!--PAGINA--><script src="/assets/leaflet/leaflet.js"></script>
 <script>
-// località: coordinate del centro, gruppo, zona di allertamento ufficiale del comune e fiume di riferimento
+// località in ordine alfabetico: coordinate della sede comunale, gruppo (costa/pianura/collina, serve solo al messaggio Telegram),
+// zona di allertamento ufficiale del comune (am.data.comuni-new.js di Allerta Meteo ER) e fiume di riferimento
 const PLACES = [
-  { id: "ravenna",          name: "Ravenna",          group: "costa",   area: "B2", river: "Fiumi Uniti",            lat: 44.4175, lon: 12.2014 },
-  { id: "cervia",           name: "Cervia",           group: "costa",   area: "B2", river: "Savio",                  lat: 44.2617, lon: 12.3490 },
-  { id: "cesenatico",       name: "Cesenatico",       group: "costa",   area: "B2", river: "Rubicone e Pisciatello", lat: 44.1997, lon: 12.3957 },
-  { id: "rimini",           name: "Rimini",           group: "costa",   area: "B2", river: "Marecchia",              lat: 44.0594, lon: 12.5683 },
-  { id: "riccione",         name: "Riccione",         group: "costa",   area: "B2", river: "Conca",                  lat: 44.0000, lon: 12.6556 },
-  { id: "imola",            name: "Imola",            group: "pianura", area: "C2", river: "Santerno",               lat: 44.3531, lon: 11.7148 },
-  { id: "lugo",             name: "Lugo",             group: "pianura", area: "D1", river: "Senio",                  lat: 44.4210, lon: 11.9110 },
-  { id: "faenza",           name: "Faenza",           group: "pianura", area: "B1", river: "Lamone",                 lat: 44.2856, lon: 11.8833 },
-  { id: "forli",            name: "Forlì",            group: "pianura", area: "B1", river: "Montone",                lat: 44.2225, lon: 12.0408 },
-  { id: "cesena",           name: "Cesena",           group: "pianura", area: "B1", river: "Savio",                  lat: 44.1391, lon: 12.2431 },
-  { id: "brisighella",      name: "Brisighella",      group: "collina", area: "A2", river: "Lamone",                 lat: 44.2219, lon: 11.7731 },
-  { id: "predappio",        name: "Predappio",        group: "collina", area: "A2", river: "Rabbi",                  lat: 44.1028, lon: 11.9806 },
-  { id: "novafeltria",      name: "Novafeltria",      group: "collina", area: "A2", river: "Marecchia",              lat: 43.8950, lon: 12.2900 },
-  { id: "santa-sofia",      name: "Santa Sofia",      group: "collina", area: "A1", river: "Bidente-Ronco",          lat: 43.9481, lon: 11.9083 },
-  { id: "bagno-di-romagna", name: "Bagno di Romagna", group: "collina", area: "A1", river: "Savio",                  lat: 43.8340, lon: 11.9600 }
+  { id: "alfonsine",                 name: "Alfonsine",                 group: "pianura",  area: "D1", river: "Senio",                   lat: 44.5077, lon: 12.0374 },
+  { id: "bagnacavallo",              name: "Bagnacavallo",              group: "pianura",  area: "D1", river: "Lamone",                  lat: 44.4140, lon: 11.9781 },
+  { id: "bagno-di-romagna",          name: "Bagno di Romagna",          group: "collina",  area: "A1", river: "Savio",                   lat: 43.8340, lon: 11.9600 },
+  { id: "bellaria-igea-marina",      name: "Bellaria-Igea Marina",      group: "costa",    area: "B2", river: "Uso",                     lat: 44.1425, lon: 12.4715 },
+  { id: "bertinoro",                 name: "Bertinoro",                 group: "collina",  area: "B1", river: "Bidente-Ronco",           lat: 44.1487, lon: 12.1365 },
+  { id: "borgo-tossignano",          name: "Borgo Tossignano",          group: "collina",  area: "C2", river: "Santerno",                lat: 44.2823, lon: 11.5966 },
+  { id: "brisighella",               name: "Brisighella",               group: "collina",  area: "A2", river: "Lamone",                  lat: 44.2219, lon: 11.7731 },
+  { id: "casola-valsenio",           name: "Casola Valsenio",           group: "collina",  area: "C2", river: "Senio",                   lat: 44.2244, lon: 11.6249 },
+  { id: "castel-bolognese",          name: "Castel Bolognese",          group: "pianura",  area: "C2", river: "Senio",                   lat: 44.3198, lon: 11.7990 },
+  { id: "castel-del-rio",            name: "Castel del Rio",            group: "collina",  area: "C2", river: "Santerno",                lat: 44.2135, lon: 11.5041 },
+  { id: "castrocaro-terme",          name: "Castrocaro Terme",          group: "collina",  area: "A2", river: "Montone",                 lat: 44.1756, lon: 11.9495 },
+  { id: "cattolica",                 name: "Cattolica",                 group: "costa",    area: "B2", river: "Conca",                   lat: 43.9618, lon: 12.7363 },
+  { id: "cervia",                    name: "Cervia",                    group: "costa",    area: "B2", river: "Savio",                   lat: 44.2617, lon: 12.3490 },
+  { id: "cesena",                    name: "Cesena",                    group: "pianura",  area: "B1", river: "Savio",                   lat: 44.1391, lon: 12.2431 },
+  { id: "cesenatico",                name: "Cesenatico",                group: "costa",    area: "B2", river: "Rubicone e Pisciatello",  lat: 44.1997, lon: 12.3957 },
+  { id: "civitella-di-romagna",      name: "Civitella di Romagna",      group: "collina",  area: "A2", river: "Bidente-Ronco",           lat: 44.0078, lon: 11.9440 },
+  { id: "conselice",                 name: "Conselice",                 group: "pianura",  area: "D1", river: "Santerno",                lat: 44.5116, lon: 11.8285 },
+  { id: "cotignola",                 name: "Cotignola",                 group: "pianura",  area: "D1", river: "Senio",                   lat: 44.3857, lon: 11.9385 },
+  { id: "dovadola",                  name: "Dovadola",                  group: "collina",  area: "A2", river: "Montone",                 lat: 44.1221, lon: 11.8871 },
+  { id: "faenza",                    name: "Faenza",                    group: "pianura",  area: "B1", river: "Lamone",                  lat: 44.2856, lon: 11.8833 },
+  { id: "forli",                     name: "Forlì",                     group: "pianura",  area: "B1", river: "Montone",                 lat: 44.2225, lon: 12.0408 },
+  { id: "forlimpopoli",              name: "Forlimpopoli",              group: "pianura",  area: "B1", river: "Bidente-Ronco",           lat: 44.1911, lon: 12.1287 },
+  { id: "fusignano",                 name: "Fusignano",                 group: "pianura",  area: "D1", river: "Senio",                   lat: 44.4666, lon: 11.9564 },
+  { id: "galeata",                   name: "Galeata",                   group: "collina",  area: "A2", river: "Bidente-Ronco",           lat: 43.9961, lon: 11.9106 },
+  { id: "imola",                     name: "Imola",                     group: "pianura",  area: "C2", river: "Santerno",                lat: 44.3531, lon: 11.7148 },
+  { id: "lugo",                      name: "Lugo",                      group: "pianura",  area: "D1", river: "Senio",                   lat: 44.4210, lon: 11.9110 },
+  { id: "massa-lombarda",            name: "Massa Lombarda",            group: "pianura",  area: "D1", river: "Santerno",                lat: 44.4470, lon: 11.8209 },
+  { id: "meldola",                   name: "Meldola",                   group: "collina",  area: "A2", river: "Bidente-Ronco",           lat: 44.1277, lon: 12.0626 },
+  { id: "mercato-saraceno",          name: "Mercato Saraceno",          group: "collina",  area: "A2", river: "Savio",                   lat: 43.9627, lon: 12.1964 },
+  { id: "misano-adriatico",          name: "Misano Adriatico",          group: "costa",    area: "B2", river: "Conca",                   lat: 43.9771, lon: 12.6981 },
+  { id: "modigliana",                name: "Modigliana",                group: "collina",  area: "A2", river: "Marzeno",                 lat: 44.1595, lon: 11.7929 },
+  { id: "montefiore-conca",          name: "Montefiore Conca",          group: "collina",  area: "B1", river: "Conca",                   lat: 43.8892, lon: 12.6114 },
+  { id: "morciano-di-romagna",       name: "Morciano di Romagna",       group: "pianura",  area: "B1", river: "Conca",                   lat: 43.9144, lon: 12.6510 },
+  { id: "novafeltria",               name: "Novafeltria",               group: "collina",  area: "A2", river: "Marecchia",               lat: 43.8950, lon: 12.2900 },
+  { id: "pennabilli",                name: "Pennabilli",                group: "collina",  area: "A1", river: "Marecchia",               lat: 43.8175, lon: 12.2671 },
+  { id: "portico-di-romagna",        name: "Portico di Romagna",        group: "collina",  area: "A1", river: "Montone",                 lat: 44.0266, lon: 11.7813 },
+  { id: "predappio",                 name: "Predappio",                 group: "collina",  area: "A2", river: "Rabbi",                   lat: 44.1028, lon: 11.9806 },
+  { id: "premilcuore",               name: "Premilcuore",               group: "collina",  area: "A1", river: "Rabbi",                   lat: 43.9808, lon: 11.7819 },
+  { id: "ravenna",                   name: "Ravenna",                   group: "costa",    area: "B2", river: "Fiumi Uniti",             lat: 44.4175, lon: 12.2014 },
+  { id: "riccione",                  name: "Riccione",                  group: "costa",    area: "B2", river: "Conca",                   lat: 44.0000, lon: 12.6556 },
+  { id: "rimini",                    name: "Rimini",                    group: "costa",    area: "B2", river: "Marecchia",               lat: 44.0594, lon: 12.5683 },
+  { id: "riolo-terme",               name: "Riolo Terme",               group: "collina",  area: "C2", river: "Senio",                   lat: 44.2761, lon: 11.7272 },
+  { id: "rocca-san-casciano",        name: "Rocca San Casciano",        group: "collina",  area: "A2", river: "Montone",                 lat: 44.0587, lon: 11.8427 },
+  { id: "russi",                     name: "Russi",                     group: "pianura",  area: "B1", river: "Lamone",                  lat: 44.3764, lon: 12.0334 },
+  { id: "san-leo",                   name: "San Leo",                   group: "collina",  area: "A2", river: "Marecchia",               lat: 43.8964, lon: 12.3446 },
+  { id: "sant-agata-feltria",        name: "Sant'Agata Feltria",        group: "collina",  area: "A2", river: "Marecchia",               lat: 43.8628, lon: 12.2069 },
+  { id: "santa-sofia",               name: "Santa Sofia",               group: "collina",  area: "A1", river: "Bidente-Ronco",           lat: 43.9481, lon: 11.9083 },
+  { id: "santarcangelo-di-romagna",  name: "Santarcangelo di Romagna",  group: "pianura",  area: "B1", river: "Marecchia",               lat: 44.0633, lon: 12.4466 },
+  { id: "sarsina",                   name: "Sarsina",                   group: "collina",  area: "A2", river: "Savio",                   lat: 43.9198, lon: 12.1425 },
+  { id: "savignano-sul-rubicone",    name: "Savignano sul Rubicone",    group: "pianura",  area: "B2", river: "Rubicone e Pisciatello",  lat: 44.0901, lon: 12.3994 },
+  { id: "solarolo",                  name: "Solarolo",                  group: "pianura",  area: "D1", river: "Senio",                   lat: 44.3589, lon: 11.8466 },
+  { id: "tredozio",                  name: "Tredozio",                  group: "collina",  area: "A2", river: "Marzeno",                 lat: 44.0796, lon: 11.7414 },
+  { id: "verghereto",                name: "Verghereto",                group: "collina",  area: "A1", river: "Savio",                   lat: 43.7945, lon: 12.0052 },
+  { id: "verucchio",                 name: "Verucchio",                 group: "collina",  area: "B1", river: "Marecchia",               lat: 43.9817, lon: 12.4232 }
 ];
-const GROUPS = { costa: { name: "Costa" }, pianura: { name: "Pianura" }, collina: { name: "Collina e montagna" } };
 const DEFAULT_PLACE = "faenza";
 
 // zone di allertamento ufficiali che coprono la Romagna (i nomi sono nostri, i codici di ARPAE)
@@ -1100,7 +1138,7 @@ function renderAlertBanner() {
 $("aBanner").addEventListener("click", () => { alertDay = $("aBanner").dataset.aday ?? "oggi"; renderAlerts(); });
 
 /* ---------- Adesso nella località scelta ---------- */
-$("picker").innerHTML = Object.entries(GROUPS).map(([g, G]) => `<optgroup label="${G.name}">${PLACES.filter(p => p.group === g).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("")}</optgroup>`).join("");
+$("picker").innerHTML = PLACES.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("");
 $("picker").addEventListener("change", e => select(e.target.value));
 
 function renderNow() {
@@ -1290,8 +1328,8 @@ function widgets(c, D, i) {
 /* ---------- Località: ogni card ha il cielo della sua località, come l'elenco delle città dell'app ---------- */
 function renderPlaces() {
   if (!overview) return;
-  $("places").innerHTML = Object.entries(GROUPS).map(([g, G]) => `<div class="group"><h3 class="outside">${G.name}</h3><div class="places">${
-    PLACES.filter(p => p.group === g).map(p => {
+  $("places").innerHTML = `<div class="places">${
+    PLACES.map(p => {
       const d = ov(p), c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10)), s = skyOf(d);
       const prob = D.precipitation_probability_max[i] ?? 0;
       return `<button type="button" class="place" data-place="${p.id}" aria-pressed="${p === sel}" style="--p0:${s.g[0]};--p1:${s.g[2]}">
@@ -1300,7 +1338,7 @@ function renderPlaces() {
         <span class="pc">${esc(WMO[c.weather_code] ?? "")}</span>
         <span class="pd"><span class="pp">${prob >= 10 ? DROP + prob + "%" : ""}</span><span>Max ${rnd(D.temperature_2m_max[i])}° Min ${rnd(D.temperature_2m_min[i])}°</span></span>
       </button>`;
-    }).join("")}</div></div>`).join("");
+    }).join("")}</div>`;
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-place]");
@@ -1496,9 +1534,26 @@ function updateMarkers() {
     const ic = L.divIcon({ className: "", html, iconSize: [0, 0] });
     if (markers.has(p.id)) markers.get(p.id).setIcon(ic).setZIndexOffset(p === sel ? 1000 : 0);
     else markers.set(p.id, L.marker([p.lat, p.lon], { icon: ic, keyboard: false, zIndexOffset: p === sel ? 1000 : 0 })
-      .addTo(map).bindTooltip(p.name, { direction: "top", offset: [0, -14] }).on("click", () => select(p.id)));
+      .bindTooltip(p.name, { direction: "top", offset: [0, -14] }).on("click", () => select(p.id)));
+  }
+  declutter();
+}
+// con tante località le temperature si coprono: si mostrano prima quella scelta, la preferita e le città principali,
+// poi le altre solo se c'è spazio; zoomando compaiono anche quelle nascoste
+const MAP_MAIN = ["ravenna", "rimini", "riccione", "cervia", "cesenatico", "imola", "lugo", "faenza", "forli", "cesena",
+  "brisighella", "predappio", "novafeltria", "santa-sofia", "bagno-di-romagna"];
+function declutter() {
+  const order = [sel, fav, ...MAP_MAIN.map(placeById), ...PLACES].filter((p, k, a) => p && a.indexOf(p) === k);
+  const shown = [];
+  for (const p of order) {
+    const m = markers.get(p.id), pt = map.latLngToContainerPoint([p.lat, p.lon]);
+    if (!m) continue;
+    if (shown.some(q => Math.abs(q.x - pt.x) < 40 && Math.abs(q.y - pt.y) < 28)) { m.remove(); continue; }
+    shown.push(pt);
+    if (!map.hasLayer(m)) m.addTo(map);
   }
 }
+map.on("zoomend", declutter);
 
 let frames = [], layers = [], pos = 0, timer = null, playing = !REDUCED, radarHost = null;
 const tileURL = (host, path, smooth = 1) => `${host}${path}/256/{z}/{x}/{y}/2/${smooth}_1.png`;

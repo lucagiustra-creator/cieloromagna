@@ -11,7 +11,18 @@ const tpl = await readFile("index.html", "utf8");
 const PLACES = new Function(`return ${tpl.match(/const PLACES = (\[[\s\S]*?\n\]);/)[1]}`)();
 const ZONES = Object.fromEntries([...tpl.matchAll(/(\w\d): \{ name: "([^"]+)"/g)].map(m => [m[1], m[2]]));
 const PROV = { ravenna: "RA", cervia: "RA", cesenatico: "FC", rimini: "RN", riccione: "RN", imola: "BO", lugo: "RA", faenza: "RA",
-  forli: "FC", cesena: "FC", brisighella: "RA", predappio: "FC", novafeltria: "RN", "santa-sofia": "FC", "bagno-di-romagna": "FC" };
+  forli: "FC", cesena: "FC", brisighella: "RA", predappio: "FC", novafeltria: "RN", "santa-sofia": "FC", "bagno-di-romagna": "FC",
+  alfonsine: "RA", bagnacavallo: "RA", "bellaria-igea-marina": "RN", bertinoro: "FC", "borgo-tossignano": "BO", "casola-valsenio": "RA",
+  "castel-bolognese": "RA", "castel-del-rio": "BO", "castrocaro-terme": "FC", cattolica: "RN", "civitella-di-romagna": "FC", conselice: "RA",
+  cotignola: "RA", dovadola: "FC", forlimpopoli: "FC", fusignano: "RA", galeata: "FC", "massa-lombarda": "RA", meldola: "FC",
+  "mercato-saraceno": "FC", "misano-adriatico": "RN", modigliana: "FC", "montefiore-conca": "RN", "morciano-di-romagna": "RN", pennabilli: "RN",
+  "portico-di-romagna": "FC", premilcuore: "FC", "riolo-terme": "RA", "rocca-san-casciano": "FC", russi: "RA", "san-leo": "RN",
+  "sant-agata-feltria": "RN", "santarcangelo-di-romagna": "RN", sarsina: "FC", "savignano-sul-rubicone": "FC", solarolo: "RA", tredozio: "FC",
+  verghereto: "FC", verucchio: "RN" };
+// località proposta nella pagina di ogni fiume: la città principale lungo il suo corso (le località sono in ordine alfabetico)
+const RIVER_PLACE = { "Fiumi Uniti": "ravenna", Savio: "cervia", "Rubicone e Pisciatello": "cesenatico", Marecchia: "rimini", Conca: "riccione",
+  Santerno: "imola", Senio: "lugo", Lamone: "faenza", Montone: "forli", Rabbi: "predappio", "Bidente-Ronco": "santa-sofia", Marzeno: "modigliana",
+  Uso: "bellaria-igea-marina" };
 
 // fiumi e stazioni: da dati.json se c'è, altrimenti solo i nomi dei fiumi da scripts/dati.mjs
 let RIVERS;
@@ -56,7 +67,7 @@ pages.push({
   title: "Cielo Romagna · meteo, allerte e fiumi",
   description: "Meteo della Romagna in un colpo d'occhio: previsioni per la tua località, radar, allerte ufficiali e livelli dei fiumi dalla costa all'Appennino.",
   h1: "Previsioni per la Romagna",
-  intro: "Previsioni meteo per 15 località della Romagna, dalla costa all'Appennino: temperatura adesso, se pioverà oggi e domani, radar, previsioni a 7 giorni, allerte ufficiali di Allerta Meteo Emilia-Romagna e livelli dei fiumi in tempo reale."
+  intro: `Previsioni meteo per ${PLACES.length} località della Romagna, dalla costa all'Appennino: temperatura adesso, se pioverà oggi e domani, radar, previsioni a 7 giorni, allerte ufficiali di Allerta Meteo Emilia-Romagna e livelli dei fiumi in tempo reale.`
 });
 for (const p of PLACES) {
   const zone = ZONES[p.area] ? `${p.area} (${ZONES[p.area]})` : p.area;
@@ -72,7 +83,7 @@ for (const p of PLACES) {
 for (const r of RIVERS) {
   const st = r.stations.map(cleanName);
   const from = st.length > 1 ? `da ${st.length} stazioni ARPAE (${listIt(st)})` : st.length ? `dalla stazione ARPAE di ${st[0]}` : "dagli idrometri ARPAE";
-  const place = PLACES.find(p => p.river === r.name);
+  const place = PLACES.find(p => p.id === RIVER_PLACE[r.name]);
   pages.push({
     path: `/fiumi/${slug(r.name)}/`,
     title: `Livello ${del(r.name)} in tempo reale · Cielo Romagna`,
