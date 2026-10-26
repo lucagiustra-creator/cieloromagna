@@ -15,9 +15,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Cielo Romagna: previsioni, radar, allerte e fiumi dalla costa all’Appennino">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="color-scheme" content="dark light">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c1624">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#eef2f7">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#1f5fa8">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/logo/icon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/logo/icon-32.png" sizes="32x32" type="image/png">
@@ -25,49 +24,35 @@
 <link rel="preload" href="/assets/fonts/fraunces-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/leaflet/leaflet.css">
 <style>
-/* Meteo della Romagna: in cima il riepilogo della località preferita (adesso, oggi, domani, allerta, fiume),
-   sotto tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
-   Colori: fondo blu notte (o chiaro freddo) e ardesia per l'interfaccia (navigazione, bottoni, selezioni);
-   i colori caldi solo per il sole e per la scala del rischio verde-giallo-arancione-rosso di allerte e fiumi,
-   così un bottone non si confonde con un'allerta; pioggia in blu; temperature neutre.
-   Identità: logo con sole e fiumi (assets/logo),
-   Fraunces per i titoli (in assets/fonts, licenza OFL). Tema scuro o chiaro secondo il dispositivo;
-   in testata un cielo che segue ora e tempo della località scelta. */
+/* Meteo della Romagna nello stile dell'app Meteo dell'iPhone: il cielo della località scelta fa da sfondo a tutta la pagina
+   (fisso, con nuvole, pioggia, neve, stelle che seguono ora e tempo), sopra card di vetro traslucide con etichette piccole.
+   In cima la località, la temperatura grande e sottile, la condizione e massima/minima; poi il riepilogo "Pioverà?" e
+   tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
+   Colori: testo bianco sul vetro; i colori caldi solo per il sole e per la scala del rischio verde-giallo-arancione-rosso
+   di allerte e fiumi; pioggia in azzurro; le barre dei 7 giorni colorate dalla temperatura come sull'iPhone.
+   Identità: logo con sole e fiumi (assets/logo), Fraunces solo per il nome del sito (in assets/fonts, licenza OFL);
+   per il resto il carattere di sistema, che sull'iPhone è lo stesso dell'app Meteo. */
 @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap; src: url("/assets/fonts/fraunces-latin-700-normal.woff2") format("woff2"); }
 @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 600; font-display: swap; src: url("/assets/fonts/fraunces-latin-600-italic.woff2") format("woff2"); }
 :root {
   color-scheme: dark;
-  --bg: #0c1624;
-  --card: #132234; --card-2: #1a2b40;
-  --line: rgba(160,195,235,.1); --line-2: rgba(160,195,235,.2);
-  --tint: rgba(160,195,235,.06); --tint-2: rgba(160,195,235,.11);
-  --ink: #f2f5f9; --ink-soft: #a5b3c6; --ink-faint: #6f7f95;
-  --nav-bg: rgba(12,22,36,.88); --shadow: none;
-  --brand: #34506f; --brand-hi: #41618a; --brand-ink: #c3d2e4;
-  --live: #4ade80; --red: #ef4444; --rain: #7cc4ff;
-  --go: #2fbf71; --warn: #f2b233; --stop: #e5484d;
-  --al-yellow: #f2c62f; --al-orange: #f08a3c; --al-red: #e5484d;
-  --mline: rgba(255,255,255,.18); --sea: rgba(124,196,255,.2);
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bg: #2a5b93;
+  /* vetro: velatura scura di giorno (il testo bianco resta leggibile sul cielo chiaro), chiara di notte; la imposta renderSky */
+  --glass: rgba(14,40,80,.24); --glass-line: rgba(255,255,255,.14);
+  --card: var(--glass); --card-2: rgba(255,255,255,.08);
+  --solid: #1d3654;
+  --line: rgba(255,255,255,.14); --line-2: rgba(255,255,255,.26);
+  --tint: rgba(255,255,255,.06); --tint-2: rgba(255,255,255,.12);
+  --ink: #fff; --ink-soft: rgba(255,255,255,.8); --ink-faint: rgba(255,255,255,.58);
+  --nav-bg: rgba(8,18,34,.22); --shadow: none;
+  --brand: rgba(255,255,255,.18); --brand-hi: rgba(255,255,255,.28); --brand-ink: #fff;
+  --live: #4ade80; --red: #ff5a5f; --rain: #8fd3ff;
+  --go: #4ade80; --warn: #ffd34d; --stop: #ff6066;
+  --al-yellow: #ffd34d; --al-orange: #ff9a4d; --al-red: #ff6066;
+  --mline: rgba(255,255,255,.22); --sea: rgba(143,211,255,.18);
+  --font: system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --display: "Fraunces", Georgia, "Times New Roman", serif;
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --bg: #eef2f7;
-    --card: #ffffff; --card-2: #e6ecf3;
-    --line: rgba(25,45,75,.1); --line-2: rgba(25,45,75,.18);
-    --tint: rgba(25,45,75,.05); --tint-2: rgba(25,45,75,.09);
-    --ink: #16202c; --ink-soft: #4a5869; --ink-faint: #7b8797;
-    --nav-bg: rgba(238,242,247,.9); --shadow: 0 1px 2px rgba(25,45,75,.06), 0 6px 18px rgba(25,45,75,.05);
-    --brand: #2c4462; --brand-hi: #385578; --brand-ink: #2c4462;
-    --live: #17924c; --rain: #1f6fb5;
-    --go: #17924c; --warn: #b07400; --stop: #c9353b;
-    --al-yellow: #a88300; --al-orange: #c8661e; --al-red: #c9353b;
-    --mline: rgba(25,45,75,.2); --sea: rgba(31,111,181,.1);
-  }
-  /* icone meteo leggibili su fondo chiaro */
-  .cl { fill: #c4ccd6; } .cl.dk { fill: #97a1ae; } .fl { stroke: #b8c0ca; } .mo { fill: #8592bd; } .sn { fill: #a3b8cf; }
+  --r: 18px;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -75,31 +60,39 @@ html { scroll-behavior: smooth; scroll-padding-top: 128px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
 button, select { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--brand-hi); outline-offset: 3px; border-radius: 6px; }
+:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 6px; }
 .container { max-width: 1100px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 
-/* ---------- Barra in alto ---------- */
-.nav { position: sticky; top: 0; z-index: 1100; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-.nav .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
-.brand svg { width: 34px; height: 34px; }
-.brand b { display: block; font-family: var(--display); font-size: 1.12rem; font-weight: 700; line-height: 1.05; letter-spacing: -.01em; }
-.brand small { display: block; font-size: .7rem; color: var(--ink-soft); }
-@media (max-width: 420px) { .brand small { display: none; } }
-.install { background: none; border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 12px; font-size: .8rem; font-weight: 600; color: var(--brand-ink); cursor: pointer; }
+/* ---------- Vetro ---------- */
+.glass, .card { background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--r); backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%); }
+.card { padding: 16px; min-width: 0; }
+/* etichetta delle card, come "PREVISIONI ORARIE" sull'iPhone */
+.lbl { display: flex; align-items: center; gap: 7px; margin: 0; font-family: var(--font); font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint); line-height: 1.2; }
+.lbl svg { width: 15px; height: 15px; flex: none; }
+.lead { margin: 10px 0 0; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: .92rem; color: var(--ink); }
+.lead.plain { border: 0; padding: 0; color: var(--ink-soft); }
 
-/* ---------- Cielo in testata ---------- */
-.sky { position: relative; overflow: hidden; isolation: isolate; color: #fff; background: linear-gradient(180deg, var(--s0, #14549f) 0%, var(--s1, #2f7fd0) 55%, var(--s2, #7bb6ea) 100%); transition: background .8s; }
-.sky::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 80px; background: linear-gradient(transparent, var(--bg)); z-index: 1; pointer-events: none; }
-.sky-l { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: none; }
+/* ---------- Barra in alto ---------- */
+.nav { position: sticky; top: 0; z-index: 1100; background: var(--nav-bg); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); border-bottom: 1px solid rgba(255,255,255,.08); }
+.nav .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
+.brand svg { width: 32px; height: 32px; }
+.brand b { display: block; font-family: var(--display); font-size: 1.08rem; font-weight: 700; line-height: 1.05; letter-spacing: -.01em; }
+.brand small { display: block; font-size: .7rem; color: var(--ink-faint); }
+@media (max-width: 420px) { .brand small { display: none; } }
+.install { background: var(--brand); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: .8rem; font-weight: 600; color: #fff; cursor: pointer; }
+
+/* ---------- Cielo: sfondo fisso di tutta la pagina ---------- */
+.sky { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: linear-gradient(180deg, var(--s0, #14549f) 0%, var(--s1, #2f7fd0) 55%, var(--s2, #7bb6ea) 100%); transition: background .8s; }
+.sky-l { position: absolute; inset: 0; pointer-events: none; display: none; }
 .sky.stars .s-stars, .sky.glow .s-glow, .sky.clouds .s-clouds, .sky.rain .s-rain, .sky.snow .s-snow, .sky.fog .s-fog, .sky.storm .s-flash { display: block; }
 .s-stars { animation: twinkle 5s ease-in-out infinite alternate; }
 @keyframes twinkle { from { opacity: .65; } to { opacity: 1; } }
-.s-clouds i { position: absolute; left: 0; border-radius: 999px; background: var(--cl, rgba(255,255,255,.4)); filter: blur(22px); animation: drift linear infinite; }
-.s-clouds i:nth-child(1) { top: 6%;  width: 380px; height: 120px; animation-duration: 95s;  animation-delay: -20s; }
-.s-clouds i:nth-child(2) { top: 38%; width: 260px; height: 80px;  animation-duration: 130s; animation-delay: -85s; }
-.s-clouds i:nth-child(3) { top: 18%; width: 460px; height: 140px; animation-duration: 160s; animation-delay: -60s; }
-.s-clouds i:nth-child(4) { top: 58%; width: 300px; height: 90px;  animation-duration: 115s; animation-delay: -10s; }
+.s-clouds i { position: absolute; left: 0; border-radius: 999px; background: var(--cl, rgba(255,255,255,.4)); filter: blur(26px); animation: drift linear infinite; }
+.s-clouds i:nth-child(1) { top: 4%;  width: 420px; height: 130px; animation-duration: 95s;  animation-delay: -20s; }
+.s-clouds i:nth-child(2) { top: 30%; width: 280px; height: 90px;  animation-duration: 130s; animation-delay: -85s; }
+.s-clouds i:nth-child(3) { top: 14%; width: 500px; height: 150px; animation-duration: 160s; animation-delay: -60s; }
+.s-clouds i:nth-child(4) { top: 55%; width: 340px; height: 100px; animation-duration: 115s; animation-delay: -10s; }
 .sky.few .s-clouds i:nth-child(n+3) { display: none; }
 @keyframes drift { from { transform: translateX(-45vw); } to { transform: translateX(115vw); } }
 .s-rain { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='160'%3E%3Cg stroke='rgba(215,228,255,0.5)' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M10 0l-4 16M40 40l-4 16M75 20l-4 16M100 70l-4 16M25 90l-4 16M60 110l-4 16M90 130l-4 16M15 140l-4 16M50 62l-4 16M112 6l-4 16'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='160'%3E%3Cg stroke='rgba(215,228,255,0.3)' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M20 10l-4 16M65 50l-4 16M95 100l-4 16M35 125l-4 16M5 70l-4 16'/%3E%3C/g%3E%3C/svg%3E"); background-size: 120px 160px, 180px 240px; animation: rainfall .7s linear infinite; }
@@ -107,107 +100,113 @@ button, select { font: inherit; color: inherit; }
 .s-snow { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill='rgba(255,255,255,0.85)'%3E%3Ccircle cx='12' cy='20' r='2'/%3E%3Ccircle cx='60' cy='8' r='1.5'/%3E%3Ccircle cx='100' cy='40' r='2.4'/%3E%3Ccircle cx='35' cy='70' r='1.6'/%3E%3Ccircle cx='80' cy='95' r='2'/%3E%3Ccircle cx='125' cy='120' r='1.5'/%3E%3Ccircle cx='20' cy='118' r='2.2'/%3E%3C/g%3E%3C/svg%3E"); animation: snowfall 9s linear infinite; }
 @keyframes snowfall { from { background-position: 0 0; } to { background-position: 40px 280px; } }
 .s-fog::before, .s-fog::after { content: ""; position: absolute; left: -20%; width: 140%; height: 34%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.2) 30%, rgba(255,255,255,.12) 60%, transparent); filter: blur(18px); animation: fogdrift 40s ease-in-out infinite alternate; }
-.s-fog::before { top: 30%; }
-.s-fog::after { top: 62%; animation-duration: 55s; animation-direction: alternate-reverse; }
+.s-fog::before { top: 20%; }
+.s-fog::after { top: 60%; animation-duration: 55s; animation-direction: alternate-reverse; }
 @keyframes fogdrift { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
 .s-flash { background: #fff; opacity: 0; animation: flash 9s infinite; }
 @keyframes flash { 0%, 89%, 92%, 95%, 100% { opacity: 0; } 90% { opacity: .32; } 93.5% { opacity: .22; } }
 
-/* ---------- Titolo ---------- */
-.hero { position: relative; z-index: 2; padding-top: 30px; padding-bottom: 84px; }
-@media (max-width: 760px) { .hero { padding-top: 20px; padding-bottom: 68px; } }
-.hero::before { content: ""; position: absolute; z-index: -1; left: -10%; right: 20%; top: 0; bottom: 30px; background: radial-gradient(ellipse 60% 70% at 25% 55%, rgba(6,12,22,.3), transparent 72%); pointer-events: none; }
-.hero h1, .picker, .now-t, .now-c, .fav-hint { text-shadow: 0 2px 20px rgba(0,0,0,.35); }
-.kicker { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
-.pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.pill { display: inline-flex; align-items: center; gap: 7px; font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #fff; padding: 5px 10px; border: 1px solid rgba(255,255,255,.28); border-radius: 999px; background: rgba(255,255,255,.12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-decoration: none; }
+/* ---------- Testata: località, temperatura, condizione, massima e minima (centrate, come sull'iPhone) ---------- */
+.hero { position: relative; text-align: center; padding-top: 26px; padding-bottom: 30px; }
+.hero h1, .picker, .now-t, .now-c, .now-hl, .fav-hint { text-shadow: 0 1px 14px rgba(0,0,0,.18); }
+.kicker { display: flex; align-items: center; justify-content: center; gap: 8px 12px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 7px; font-size: .66rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #fff; padding: 4px 10px; border: 1px solid rgba(255,255,255,.24); border-radius: 999px; background: rgba(255,255,255,.12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-decoration: none; }
 .pill.live { color: #c4f7d8; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; animation: blink 2.4s infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 600; font-size: 1.05rem; letter-spacing: 0; color: rgba(255,255,255,.88); }
-/* adesso nella località scelta: è la cosa più grande della pagina */
-.place-row { display: flex; align-items: center; gap: 10px; margin-top: 26px; min-width: 0; }
-.fav { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); color: #fff; font-size: 1.2rem; line-height: 1; cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.fav[aria-pressed="true"] { color: #ffd25a; border-color: rgba(255,210,90,.7); background: rgba(255,210,90,.16); }
-.picker { appearance: none; -webkit-appearance: none; min-width: 0; max-width: 100%; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 2px center; border: 0; padding: 0 26px 0 0; font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -.015em; color: #fff; cursor: pointer; text-overflow: ellipsis; field-sizing: content; border-bottom: 2px dashed rgba(255,255,255,.45); border-radius: 0; padding-bottom: 2px; }
-.picker:hover { border-bottom-color: rgba(255,255,255,.85); }
+h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 600; font-size: .98rem; letter-spacing: 0; color: rgba(255,255,255,.85); }
+.place-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; min-width: 0; }
+.fav { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 1.05rem; line-height: 1; cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.fav[aria-pressed="true"] { color: #ffd25a; background: rgba(255,210,90,.18); }
+.picker { appearance: none; -webkit-appearance: none; min-width: 0; max-width: 100%; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23fff' stroke-opacity='.75' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 2px center; border: 0; padding: 0 24px 0 0; font-family: var(--font); font-weight: 500; font-size: clamp(2rem, 7vw, 2.5rem); letter-spacing: -.01em; color: #fff; cursor: pointer; text-overflow: ellipsis; field-sizing: content; border-radius: 0; text-align: center; }
 .picker option, .picker optgroup { font-family: var(--font); font-size: 1rem; color: #1f1b17; background: #fff; text-shadow: none; }
-.now-hero { display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; margin-top: 4px; }
-.now-t { font-size: clamp(5.4rem, 19vw, 8.5rem); font-weight: 800; letter-spacing: -.06em; line-height: .92; font-variant-numeric: tabular-nums; text-shadow: 0 4px 30px rgba(0,0,0,.16); }
-.now-hero svg { width: clamp(64px, 15vw, 92px); height: clamp(64px, 15vw, 92px); flex: none; filter: drop-shadow(0 4px 16px rgba(0,0,0,.18)); }
-.now-c { display: grid; gap: 4px; }
-.now-c span { font-size: clamp(1.15rem, 3.4vw, 1.5rem); font-weight: 600; }
-.now-c small { font-size: .92rem; color: rgba(255,255,255,.82); font-variant-numeric: tabular-nums; }
-.fav-hint { margin: 16px 0 0; font-size: .8rem; color: rgba(255,255,255,.72); max-width: 40rem; }
+/* il bottone della stella fa da contrappeso a destra, così il nome resta al centro */
+.place-row::after { content: ""; width: 34px; flex: none; }
+.now-hero { display: grid; justify-items: center; gap: 2px; }
+.now-t { display: block; font-size: clamp(6rem, 26vw, 8.4rem); font-weight: 200; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; padding-left: .2em; }
+.now-c { display: inline-flex; align-items: center; gap: 8px; font-size: clamp(1.15rem, 4.4vw, 1.4rem); font-weight: 500; }
+.now-c svg { width: 34px; height: 34px; flex: none; filter: drop-shadow(0 2px 8px rgba(0,0,0,.15)); }
+.now-hl { display: block; margin-top: 2px; font-size: clamp(1.05rem, 4vw, 1.25rem); font-weight: 500; font-variant-numeric: tabular-nums; }
+.now-hl span + span { margin-left: 12px; }
+.fav-hint { margin: 14px auto 0; font-size: .8rem; color: rgba(255,255,255,.72); max-width: 34rem; }
 .fav-hint button { background: none; border: 0; padding: 0; color: #fff; font-size: inherit; cursor: pointer; text-decoration: underline; }
-/* fascia allerta: compare solo con allerta gialla o superiore; sta sul cielo, quindi sempre su fondo scuro */
-.abanner { display: flex; align-items: center; gap: 6px 16px; flex-wrap: wrap; max-width: 46rem; margin-top: 22px; padding: 12px 16px; border-radius: 12px; background: rgba(10,12,16,.74); border: 1px solid rgba(255,255,255,.16); border-left: 6px solid var(--ab); color: #fff; text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.abanner:hover { background: rgba(10,12,16,.84); }
+/* fascia allerta: compare solo con allerta gialla o superiore */
+.abanner { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; max-width: 40rem; margin: 20px auto 0; padding: 12px 16px; border-radius: 14px; background: rgba(10,12,16,.6); border: 1px solid rgba(255,255,255,.14); border-left: 6px solid var(--ab); color: #fff; text-decoration: none; text-align: left; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.abanner:hover { background: rgba(10,12,16,.72); }
 .abanner b { color: var(--ab); font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .abanner span { color: rgba(255,255,255,.9); font-size: .94rem; }
 .abanner em { margin-left: auto; font-style: normal; font-weight: 600; font-size: .86rem; white-space: nowrap; }
 
-
-/* ---------- Card e bottoni ---------- */
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0; box-shadow: var(--shadow); }
-.eyebrow { font-size: .7rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--brand-ink); }
-.linkbtn { background: none; border: 0; padding: 0; cursor: pointer; color: var(--brand-ink); font-size: .78rem; text-decoration: none; }
+/* ---------- Bottoni e testi di servizio ---------- */
+.eyebrow { font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint); }
+.linkbtn { background: none; border: 0; padding: 0; cursor: pointer; color: #fff; font-size: .78rem; text-decoration: none; }
 .linkbtn:hover { text-decoration: underline; }
-.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--brand); color: #fff; border: 1px solid transparent; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: .88rem; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--brand); color: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; font-weight: 600; font-size: .88rem; text-decoration: none; cursor: pointer; white-space: nowrap; }
 .btn:hover { background: var(--brand-hi); }
-.seg { display: inline-flex; background: var(--card-2); border: 1px solid var(--line); border-radius: 9px; padding: 2px; }
-.seg button { background: none; border: 0; padding: 6px 14px; border-radius: 7px; font-size: .84rem; color: var(--ink-soft); cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
+.seg { display: inline-flex; background: rgba(0,0,0,.18); border-radius: 10px; padding: 2px; }
+.seg button { background: none; border: 0; padding: 6px 14px; border-radius: 8px; font-size: .84rem; color: var(--ink-soft); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: rgba(255,255,255,.24); color: #fff; font-weight: 600; }
 .loading { color: var(--ink-faint); font-size: .9rem; }
-.tip { margin: 16px 0 0; font-size: .88rem; color: var(--ink-soft); }
+.tip { margin: 0 0 14px; font-size: .88rem; color: var(--ink-soft); }
 /* orari dei dati: misura, acquisizione, pagina */
-.stamp { margin: 32px 0 0; font-size: .72rem; color: var(--ink-faint); line-height: 1.6; }
-.stamp b { color: var(--ink-faint); font-weight: 600; }
+.stamp { margin: 20px 4px 0; font-size: .72rem; color: var(--ink-faint); line-height: 1.6; text-shadow: 0 1px 8px rgba(0,0,0,.2); }
+.stamp b { color: var(--ink-soft); font-weight: 600; }
 .stamp a { color: var(--ink-soft); }
 
 /* ---------- Riepilogo della località ---------- */
-.sum { margin-top: 8px; padding: 0; overflow: hidden; }
-.sum-q { padding: 16px 18px 4px; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
-.sday { display: grid; grid-template-columns: 74px auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 18px; }
-.sday + .sday { border-top: 1px dashed var(--line); }
-.sd-k { font-weight: 700; font-size: .92rem; }
-.ans { justify-self: start; min-width: 64px; text-align: center; font-weight: 800; font-size: .92rem; padding: 4px 10px; border-radius: 8px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); }
+.sum { padding: 0; overflow: hidden; }
+.sum .lbl { padding: 14px 16px 6px; }
+.sday { display: grid; grid-template-columns: 70px auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 16px; }
+.sday + .sday { border-top: 1px solid var(--line); }
+.sd-k { font-weight: 600; font-size: .95rem; }
+.ans { justify-self: start; min-width: 60px; text-align: center; font-weight: 700; font-size: .9rem; padding: 4px 10px; border-radius: 999px; color: #fff; background: color-mix(in srgb, var(--c) 30%, transparent); border: 1px solid color-mix(in srgb, var(--c) 60%, transparent); }
 .ans.yes { --c: var(--rain); } .ans.maybe { --c: var(--rain); border-style: dashed; background: transparent; }
-.ans.no, .ans.na { --c: var(--ink-faint); background: transparent; } .ans.no { color: var(--ink-soft); }
+.ans.no, .ans.na { --c: rgba(255,255,255,.5); background: rgba(255,255,255,.08); border-color: transparent; } .ans.no { color: var(--ink-soft); }
 .sd-txt { font-size: .92rem; color: var(--ink); min-width: 0; }
 .sd-txt small { display: block; font-size: .72rem; color: var(--lvl, var(--ink-faint)); margin-top: 3px; }
-.sd-tt { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.sd-tt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .sd-tt span + span { font-weight: 500; color: var(--ink-faint); margin-left: 6px; }
 @media (max-width: 560px) { .sday { grid-template-columns: auto 1fr auto; } .sd-k { grid-column: 1 / -1; } }
-.sum-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); }
-.schip { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 600; padding: 5px 10px; border-radius: 8px; text-decoration: none; color: var(--ink); background: var(--card-2); border: 1px solid var(--line); }
-.schip.hot { background: color-mix(in srgb, var(--lvl) 14%, transparent); border-color: color-mix(in srgb, var(--lvl) 50%, transparent); }
+.sum-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.schip { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 600; padding: 5px 11px; border-radius: 999px; text-decoration: none; color: #fff; background: rgba(255,255,255,.1); }
+.schip.hot { background: color-mix(in srgb, var(--lvl) 28%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lvl) 60%, transparent); }
 .schip i { width: 7px; height: 7px; border-radius: 50%; background: var(--lvl); flex: none; }
 .schip small { font-weight: 500; color: var(--ink-faint); }
-.sum-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 18px 14px; font-size: .75rem; color: var(--ink-faint); border-top: 1px solid var(--line); }
+.sum-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px 13px; font-size: .75rem; color: var(--ink-faint); border-top: 1px solid var(--line); }
 
 /* ---------- Schede: in alto sotto la barra su schermo largo, in basso come un'app sul telefono ---------- */
-.tabs { position: sticky; top: 60px; z-index: 1050; display: flex; gap: 4px; margin-top: 28px; padding: 4px; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 12px; }
-.tabs a { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 9px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: .92rem; }
+.tabs { position: sticky; top: 56px; z-index: 1050; display: flex; gap: 4px; margin-top: 14px; padding: 4px; background: var(--nav-bg); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid var(--glass-line); border-radius: 14px; }
+.tabs a { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px; border-radius: 10px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: .92rem; }
 .tabs a:hover { background: var(--tint); }
-.tabs a[aria-current="page"] { background: var(--brand); color: #fff; }
+.tabs a[aria-current="page"] { background: rgba(255,255,255,.22); color: #fff; }
 .tabs svg { width: 20px; height: 20px; flex: none; }
 .tdot { width: 8px; height: 8px; border-radius: 50%; background: var(--lvl); display: none; }
 .tabs a.alert .tdot { display: inline-block; }
 @media (max-width: 760px) {
   html { scroll-padding-top: 72px; }
-  .tabs { position: fixed; top: auto; left: 0; right: 0; bottom: 0; margin: 0; border-radius: 0; border: 0; border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tabs { position: fixed; top: auto; left: 0; right: 0; bottom: 0; margin: 0; border-radius: 0; border: 0; border-top: 1px solid var(--glass-line); background: rgba(10,22,40,.42); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
   .tabs a { flex-direction: column; gap: 3px; font-size: .7rem; padding: 6px; }
-  .tabs a[aria-current="page"] { background: none; color: var(--ink); font-weight: 800; box-shadow: inset 0 2px 0 var(--ink); border-radius: 0; }
+  .tabs a[aria-current="page"] { background: none; color: #fff; font-weight: 700; }
+  .tabs a:not([aria-current]) { opacity: .7; }
   .tdot { position: absolute; top: 4px; left: calc(50% + 8px); }
   body { padding-bottom: 72px; }
 }
-.tab { margin-top: 40px; }
-.block + .block { margin-top: 72px; }
-.tab h2 { margin: 6px 0 0; font-family: var(--display); font-size: clamp(1.5rem, 3.2vw, 1.9rem); font-weight: 700; letter-spacing: -.015em; line-height: 1.1; }
-.tab .sub { margin: 8px 0 18px; color: var(--ink-soft); max-width: 44rem; }
-.sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 18px; }
+.tab { margin-top: 14px; }
+/* card impilate come nell'app: spazi stretti e regolari */
+.block + .block, .tab > .block + details { margin-top: 14px; }
+.tab h2 { margin: 6px 0 0; font-size: clamp(1.4rem, 3.2vw, 1.7rem); font-weight: 600; letter-spacing: -.01em; line-height: 1.15; }
+.tab h2.lbl { margin: 0; font-size: .74rem; font-weight: 600; letter-spacing: .04em; }
+.tab .sub { margin: 8px 0 16px; color: var(--ink-soft); max-width: 44rem; }
+.sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 16px; }
 .sec-head .sub { margin-bottom: 0; }
+.outside { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
+/* su schermo largo le card delle previsioni si affiancano a due a due */
+@media (min-width: 900px) {
+  #previsioni { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  #previsioni > * { grid-column: 1 / -1; margin-top: 0 !important; }
+  #previsioni > .half { grid-column: auto; }
+  #previsioni > .half.glass { height: 100%; }
+}
 
 /* ---------- Allerte ufficiali ---------- */
 .zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -224,89 +223,110 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .zhead b { font-size: 1rem; font-weight: 700; line-height: 1.2; }
 .zhead small { color: var(--ink-faint); font-size: .72rem; white-space: nowrap; }
 .zcom { color: var(--ink-faint); font-size: .76rem; line-height: 1.35; }
-.abadge { justify-self: start; display: inline-flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; color: var(--lvl); background: color-mix(in srgb, var(--lvl) 14%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 50%, transparent); }
-.abadge i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.abadge { justify-self: start; display: inline-flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; background: color-mix(in srgb, var(--lvl) 30%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 65%, transparent); }
+.abadge i { width: 7px; height: 7px; border-radius: 50%; background: var(--lvl); }
 .aev { display: flex; flex-wrap: wrap; gap: 6px; }
-.aev span { font-size: .74rem; padding: 3px 8px; border-radius: 6px; background: color-mix(in srgb, var(--c) 16%, transparent); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); }
+.aev span { font-size: .74rem; padding: 3px 8px; border-radius: 6px; background: color-mix(in srgb, var(--c) 24%, transparent); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); }
 .official { display: flex; align-items: center; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; margin-top: 12px; }
 .official p { margin: 0; color: var(--ink-soft); font-size: .88rem; max-width: 44rem; }
 .official b { color: var(--ink); }
 
 /* ---------- Radar ---------- */
-.row { display: grid; grid-template-columns: 1.45fr 1fr; gap: 16px; }
-@media (max-width: 860px) { .row { grid-template-columns: 1fr; } .radar { height: clamp(380px, 90vw, 540px); min-height: 0; } }
-.radar { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--card-2); min-height: 420px; height: 100%; box-shadow: var(--shadow); }
+.radar { position: relative; overflow: hidden; margin-top: 12px; border-radius: 12px; background: #1b1f26; height: 460px; }
+@media (max-width: 760px) { .radar { height: clamp(380px, 100vw, 520px); } }
 #map { position: absolute; inset: 0; }
-.leaflet-container { background: var(--card-2); font: inherit; }
+.leaflet-container { background: #1b1f26; font: inherit; }
 .leaflet-control-attribution { background: rgba(0,0,0,.55) !important; color: #9aa0aa !important; font-size: 10px; }
 .leaflet-control-attribution a { color: #c9cdd4 !important; }
-.leaflet-bar a { background: var(--card) !important; color: var(--ink) !important; border-color: var(--line-2) !important; }
+.leaflet-bar a { background: rgba(20,28,40,.85) !important; color: #fff !important; border-color: rgba(255,255,255,.16) !important; }
 .leaflet-tooltip { background: rgba(10,12,16,.88); color: #f4f5f7; border: 1px solid rgba(255,255,255,.16); box-shadow: none; font-size: .74rem; font-weight: 600; }
 .leaflet-tooltip-top::before { border-top-color: rgba(10,12,16,.88); }
 .tm { display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 6px; border-radius: 12px; background: rgba(10,12,16,.86); border: 2px solid var(--c); color: #fff; font-size: .74rem; font-weight: 800; font-variant-numeric: tabular-nums; transform: translate(-50%, -50%); cursor: pointer; white-space: nowrap; }
-.tm.sel { background: var(--brand); border-color: #fff; box-shadow: 0 0 0 3px rgba(150,180,215,.45); }
+.tm.sel { background: #fff; color: #10233a; border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.35); }
 .badge { position: absolute; top: 12px; z-index: 1000; display: inline-flex; align-items: center; gap: 5px; font-size: .64rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 5px 8px; border-radius: 6px; pointer-events: none; }
 .badge.live { left: 56px; background: rgba(0,0,0,.65); color: #fff; }
 .badge.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
 .badge.time { right: 12px; background: rgba(0,0,0,.65); color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .rfoot { position: absolute; left: 10px; right: 10px; bottom: 26px; z-index: 1000; display: grid; gap: 8px; }
-.rain-now { padding: 9px 12px; border-radius: 10px; background: rgba(10,12,16,.82); border: 1px solid rgba(255,255,255,.16); color: #f4f5f7; font-size: .86rem; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.rbar { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px; background: rgba(10,12,16,.82); border: 1px solid rgba(255,255,255,.16); font-size: .68rem; color: #c9cdd4; }
-.rbtn { width: 26px; height: 26px; border-radius: 50%; border: 0; background: var(--brand); color: #fff; cursor: pointer; display: grid; place-items: center; font-size: .7rem; flex: none; }
+.rain-now { padding: 9px 12px; border-radius: 12px; background: rgba(10,12,16,.72); border: 1px solid rgba(255,255,255,.14); color: #f4f5f7; font-size: .86rem; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.rbar { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; background: rgba(10,12,16,.72); border: 1px solid rgba(255,255,255,.14); font-size: .68rem; color: #c9cdd4; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.rbtn { width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(255,255,255,.2); color: #fff; cursor: pointer; display: grid; place-items: center; font-size: .7rem; flex: none; }
 .rprog { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden; }
 .rprog i { display: block; height: 100%; width: 0; background: #c9cdd4; transition: width .3s; }
 .rleg { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .rleg i { width: 54px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #9bd8ff, #2f6fdb, #ffcc00, #ff3d3d); }
 @media (max-width: 520px) { .rleg span { display: none; } }
 
-/* ---------- Adesso: dettagli ---------- */
-.now-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .74rem; color: var(--ink-faint); margin-bottom: 12px; }
-.now-top .on { display: flex; align-items: center; gap: 7px; color: var(--ink-faint); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: .7rem; }
-/* widget di "Adesso": luce, vento, UV, umidità, pioggia */
-.widgets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.wd { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
-.wd.wide { grid-column: 1 / -1; grid-template-columns: 124px minmax(0, 1fr); }
-.wd svg { width: 100%; height: auto; display: block; overflow: visible; }
-.wd .k { display: block; font-size: .68rem; color: var(--ink-faint); }
-.wd b { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
-.wd b em { font-style: normal; font-size: .74rem; font-weight: 600; color: var(--ink-soft); }
-.wd small { display: block; font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
-.w-track, .w-hor, .w-tick { fill: none; stroke: var(--line-2); stroke-width: 2; stroke-linecap: round; }
-.w-hor { stroke-dasharray: 2 4; }
-.w-sun { fill: none; stroke: #f2a33a; stroke-width: 3; stroke-linecap: round; }
-.w-off { fill: var(--ink-faint); }
-.w-card { font: 700 8px var(--font); fill: var(--ink-faint); }
-.w-arrow { fill: var(--ink); }
-.w-band { fill: none; stroke-width: 6; }
-.w-needle { fill: var(--card); stroke: var(--ink); stroke-width: 2.5; }
+/* ---------- Adesso: riquadri come quelli dell'app (percepita, pioggia, vento, sole, UV, umidità...) ---------- */
+.now-top { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; }
+.widgets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; grid-auto-flow: dense; }
+@media (min-width: 900px) { .widgets { grid-template-columns: repeat(4, minmax(0, 1fr)); } .wd { aspect-ratio: auto; min-height: 196px; } }
+.wd { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 168px; aspect-ratio: 1; padding: 14px 16px; overflow: hidden; }
+.wd.wide { grid-column: span 2; aspect-ratio: auto; }
+.wd > * { flex-shrink: 0; }
+.wd .wv { display: block; margin-top: 8px; font-size: 2.1rem; font-weight: 500; line-height: 1.05; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.wd .wv small { font-size: 1.05rem; font-weight: 600; }
+.wd .wv2 { display: block; font-size: 1.15rem; font-weight: 600; margin-top: 2px; }
+.wd .ws { margin: auto 0 0; padding-top: 8px; font-size: .86rem; line-height: 1.3; color: var(--ink); }
+.wd svg { display: block; overflow: visible; }
+.w-track, .w-tick { fill: none; stroke: rgba(255,255,255,.3); stroke-width: 2; stroke-linecap: round; }
+.w-hor { stroke: rgba(255,255,255,.4); stroke-width: 1; }
+.w-card { font: 700 9px var(--font); fill: var(--ink-faint); }
+.w-arrow { fill: #fff; }
+/* vento: righe a sinistra, bussola a destra */
+.wrows { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 12px; align-items: center; margin-top: 6px; }
+.wrows dl { margin: 0; display: grid; }
+.wrows dl div { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; font-size: .95rem; }
+.wrows dl div + div { border-top: 1px solid var(--line); }
+.wrows dd { margin: 0; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wrows svg { width: 118px; height: 118px; }
+.compass-v { font: 600 18px var(--font); fill: #fff; }
+.compass-u { font: 500 10px var(--font); fill: var(--ink-soft); }
+/* UV: barra della scala di rischio con il pallino */
+.uvbar { position: relative; height: 5px; border-radius: 3px; margin-top: 12px; background: linear-gradient(90deg, #4ade80, #facc15 30%, #fb923c 55%, #ef4444 75%, #c026d3); }
+.uvbar i { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,.35); transform: translate(-50%, -50%); }
+/* alba e tramonto: la curva del sole nel giorno */
+.sunc { width: calc(100% + 32px); margin: 6px -16px 0; height: auto; }
+.sunc .lo { fill: none; stroke: rgba(255,255,255,.25); stroke-width: 2; }
+.sunc .hi { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 2.4; }
+/* pressione: quadrante con le tacche */
+.gauge { width: 100%; max-width: 104px; margin: 2px auto 0; }
+@media (min-width: 900px) { .gauge { max-width: 132px; } }
+.gauge .tk { stroke: rgba(255,255,255,.35); stroke-width: 1.4; }
+.gauge .tk.on { stroke: #fff; stroke-width: 3.2; }
+.gauge .gv { font: 600 17px var(--font); fill: #fff; }
+.gauge .gu { font: 500 10px var(--font); fill: var(--ink-soft); }
+.gauge .ga { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* umidità e pioggia: piccolo riempimento */
 .w-water { fill: var(--rain); opacity: .6; }
-.tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+/* luna: righe e disegno della fase */
+.moonw .wrows { grid-template-columns: minmax(0, 1fr) 104px; }
+.moonw .wrows svg { width: 104px; height: 104px; }
+.tile { border-radius: 12px; padding: 10px 12px; min-width: 0; background: rgba(255,255,255,.06); }
 .tile .k { font-size: .68rem; color: var(--ink-faint); font-weight: 500; }
 .tile .v { font-size: 1.05rem; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
 .tile .s { font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
 
-/* ---------- Località ---------- */
-.group + .group { margin-top: 22px; }
-.group h3 { margin: 0 0 10px; font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+/* ---------- Località: card con il proprio cielo, come l'elenco delle città dell'app ---------- */
+.group + .group { margin-top: 18px; }
+.group h3 { margin: 0 4px 8px; font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint); }
 .places { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 900px) { .places { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; } .place { flex: 0 0 150px; scroll-snap-align: start; } }
-.place { text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 2px; cursor: pointer; min-width: 0; box-shadow: var(--shadow); }
-.place:hover { border-color: var(--line-2); }
-.place[aria-pressed="true"] { border-color: var(--brand-ink); box-shadow: inset 0 0 0 1px var(--brand-ink); }
-.place .pn { font-size: .9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.place .pr { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-.place .pr svg { width: 34px; height: 34px; flex: none; }
-.place .pt { font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.place .pd { font-size: .74rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.place .pp { font-size: .72rem; color: var(--rain); min-height: 1.1em; }
+@media (max-width: 900px) { .places { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; } .place { flex: 0 0 168px; scroll-snap-align: start; } }
+.place { position: relative; text-align: left; background: linear-gradient(180deg, var(--p0, #2f7fd0), var(--p1, #7bb6ea)); border: 0; border-radius: 16px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; cursor: pointer; min-width: 0; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.18); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+.place[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #fff; }
+.place .pn { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.place .pc { grid-column: 1; font-size: .74rem; color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.place .pt { grid-column: 2; grid-row: 1 / span 2; font-size: 2.1rem; font-weight: 300; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.place .pd { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 6px; margin-top: 16px; font-size: .74rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.place .pp { color: #cfeaff; }
 
 /* ---------- Fiumi: schema a linee della metro, dall'Appennino (in alto) al mare (in basso) ---------- */
 .rv-sum { display: flex; align-items: center; gap: 12px 18px; flex-wrap: wrap; margin-bottom: 14px; }
 .rv-sum p { margin: 0; color: var(--ink-soft); font-size: .9rem; }
 .rv-sum b { color: var(--ink); }
-.rv-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 7px; color: var(--lvl); background: color-mix(in srgb, var(--lvl) 14%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 50%, transparent); white-space: nowrap; }
-.rv-badge i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.rv-badge.ok { color: var(--ink-soft); background: transparent; border-color: var(--line-2); }
+.rv-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .7rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: #fff; background: color-mix(in srgb, var(--lvl) 28%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 60%, transparent); white-space: nowrap; }
+.rv-badge i { width: 6px; height: 6px; border-radius: 50%; background: var(--lvl); }
+.rv-badge.ok { color: var(--ink-soft); background: rgba(255,255,255,.08); border-color: transparent; }
 .rv-badge.ok i { background: var(--go); }
 .metro { padding: 0; overflow: hidden; }
 .metro-map { position: relative; height: 460px; --ytop: 17%; --ysea: 84%; }
@@ -320,9 +340,9 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .mcol:hover { background: var(--tint); }
 .mcol[aria-pressed="true"] { background: var(--tint-2); }
 .mcol::before { content: ""; position: absolute; left: 50%; width: 4px; transform: translateX(-50%); border-radius: 2px; top: calc(var(--ysea) - var(--p0) * (var(--ysea) - var(--ytop))); bottom: calc(100% - var(--ysea) - 4%); background: var(--mline); }
-.mcol[aria-pressed="true"]::before { background: var(--brand-ink); }
+.mcol[aria-pressed="true"]::before { background: #fff; }
 .mname { position: absolute; top: 3.5%; left: 50%; transform: translateX(-50%); font-size: .72rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
-.mcol[aria-pressed="true"] .mname { color: var(--brand-ink); }
+.mcol[aria-pressed="true"] .mname { color: #fff; }
 @media (max-width: 760px) {
   .metro-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
   .metro-map { min-width: 700px; --ytop: 24%; }
@@ -330,8 +350,8 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 }
 .mswipe { display: none; }
 @media (max-width: 760px) { .mswipe { display: inline; } }
-.mdot { position: absolute; left: 50%; top: calc(var(--ysea) - var(--p) * (var(--ysea) - var(--ytop))); width: 13px; height: 13px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--lvl); border: 2.5px solid var(--card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lvl) 60%, transparent); }
-.mdot.stale { background: var(--card); border-color: var(--ink-faint); box-shadow: none; }
+.mdot { position: absolute; left: 50%; top: calc(var(--ysea) - var(--p) * (var(--ysea) - var(--ytop))); width: 13px; height: 13px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--lvl); border: 2.5px solid var(--solid); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lvl) 60%, transparent); }
+.mdot.stale { background: var(--solid); border-color: var(--ink-faint); box-shadow: none; }
 .mdot.up::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--warn); animation: pulse 1.8s ease-out infinite; }
 @keyframes pulse { from { transform: scale(.6); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
 .mdot b { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: .62rem; font-weight: 600; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -347,8 +367,10 @@ h1 { margin: 0; font-family: var(--display); font-style: italic; font-weight: 60
 .rv-detail .official { margin-top: 0; display: grid; justify-items: start; }
 .rivers { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 12px; }
 @media (max-width: 400px) { .rivers { grid-template-columns: 1fr; } }
-details.more { margin-top: 56px; }
-details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .92rem; font-weight: 600; padding: 6px 0; }
+details.more { margin-top: 14px; }
+details.more > summary { cursor: pointer; color: #fff; font-size: .92rem; font-weight: 600; padding: 12px 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--glass-line); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
+details.more[open] > summary { margin-bottom: 12px; }
+details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
 .rcard { padding: 14px 16px; }
 .rcard header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
 .rcard header b { font-size: 1rem; }
@@ -364,7 +386,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 
 /* ---------- Accordo tra modelli (per esperti) ---------- */
 .trust { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: center; margin-bottom: 18px; }
-.trust .tb { grid-row: span 2; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 12px; border-radius: 10px; color: var(--lvl); background: color-mix(in srgb, var(--lvl) 14%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 50%, transparent); text-align: center; line-height: 1.2; }
+.trust .tb { grid-row: span 2; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 12px; border-radius: 12px; color: #fff; background: color-mix(in srgb, var(--lvl) 28%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 60%, transparent); text-align: center; line-height: 1.2; }
 .trust .tb b { display: block; font-size: 1.1rem; letter-spacing: -.01em; text-transform: none; }
 .trust h3 { margin: 0; font-size: 1.1rem; font-weight: 700; text-wrap: balance; }
 .trust p { margin: 0; color: var(--ink-soft); font-size: .86rem; }
@@ -390,30 +412,48 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .spread { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
 @media (max-width: 560px) { .spread { grid-template-columns: 1fr; } }
 
-/* ---------- Ora per ora e giorni ---------- */
+/* ---------- Ora per ora ---------- */
 /* grafico delle 24 ore: curva della temperatura, barre della pioggia, fasce della notte */
-.hchart-wrap { overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
+.hchart-wrap { overflow-x: auto; scrollbar-width: none; margin-top: 10px; }
+.hchart-wrap::-webkit-scrollbar { display: none; }
 .hchart { display: block; }
 .hchart text { font-family: var(--font); font-size: 12px; fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.hchart .tl { fill: var(--ink); font-weight: 700; font-size: 13px; }
-.hchart .hl { fill: var(--ink-faint); font-size: 11.5px; }
-.hchart .pl { fill: var(--rain); font-size: 11px; font-weight: 600; }
+.hchart .tl { fill: var(--ink); font-weight: 600; font-size: 14px; }
+.hchart .hl { fill: var(--ink); font-weight: 600; font-size: 12.5px; }
+.hchart .pl { fill: var(--rain); font-size: 11px; font-weight: 700; }
 .hchart .gl { fill: var(--ink-faint); font-size: 10.5px; }
-.hchart .night { fill: var(--tint); }
-.hchart .nowc { fill: var(--tint-2); }
+.hchart .night { fill: rgba(0,0,0,.1); }
+.hchart .nowc { fill: rgba(255,255,255,.12); }
 .hchart .base { stroke: var(--line-2); stroke-width: 1; }
 .hchart .bar { fill: var(--rain); }
-.hchart .line { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-line 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
+.hchart .line { fill: none; stroke: #fff; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-line 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
 .hchart .area { opacity: 0; animation: fade-in .8s ease .7s forwards; }
 @keyframes draw-line { to { stroke-dashoffset: 0; } }
 @keyframes fade-in { to { opacity: 1; } }
-.hleg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: .72rem; color: var(--ink-faint); }
+.hleg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .72rem; color: var(--ink-faint); }
 .hleg span { display: inline-flex; align-items: center; gap: 6px; }
 .hleg i { display: inline-block; }
-.hleg .lg-line { width: 16px; height: 2.4px; border-radius: 2px; background: var(--ink); }
-.hleg .lg-bar { width: 8px; height: 12px; border-radius: 2px; background: var(--rain); opacity: .7; }
-.hleg .lg-night { width: 12px; height: 12px; border-radius: 3px; background: var(--tint-2); }
-/* icona grande della testata: si muove piano (raggi, nuvola, pioggia, neve, lampi, nebbia) */
+.hleg .lg-line { width: 16px; height: 2.4px; border-radius: 2px; background: #fff; }
+.hleg .lg-bar { width: 8px; height: 12px; border-radius: 2px; background: var(--rain); opacity: .8; }
+.hleg .lg-night { width: 12px; height: 12px; border-radius: 3px; background: rgba(0,0,0,.18); }
+
+/* ---------- 7 giorni: elenco con la barra di temperatura, come i "10 giorni" dell'app ---------- */
+.days { display: grid; margin-top: 4px; }
+.dr { display: grid; grid-template-columns: minmax(64px, 1.1fr) 44px 36px minmax(70px, 2.4fr) 36px; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.dr:first-child { border-top: 0; }
+.dn { font-size: 1.05rem; font-weight: 600; text-transform: capitalize; line-height: 1.15; min-width: 0; }
+.dn small { display: block; font-size: .64rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.dn small.cold { color: var(--rain); } .dn small.hot { color: var(--al-orange); }
+.di { display: grid; justify-items: center; line-height: 1; }
+.di svg { width: 30px; height: 30px; }
+.di small { font-size: .7rem; font-weight: 700; color: var(--rain); margin-top: -2px; }
+.dmin { text-align: right; font-size: 1.05rem; font-weight: 600; color: var(--ink-faint); }
+.dmax { font-size: 1.05rem; font-weight: 600; }
+.dbar { position: relative; height: 5px; border-radius: 3px; background: rgba(0,0,0,.2); }
+.dbar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.dbar b { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,.3); transform: translate(-50%, -50%); }
+
+/* icona animata della testata: si muove piano (raggi, nuvola, pioggia, neve, lampi, nebbia) */
 .anim .ic-rays { transform-box: fill-box; transform-origin: center; animation: ic-spin 30s linear infinite; }
 .anim .ic-cloud { animation: ic-bob 5s ease-in-out infinite alternate; }
 .anim .ic-rain path, .anim .sn circle { animation: ic-fall 1.1s linear infinite; }
@@ -427,6 +467,7 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 @keyframes ic-fall { 0% { transform: translateY(-5px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(7px); opacity: 0; } }
 @keyframes ic-bolt { 0%, 86%, 92%, 100% { opacity: 1; } 88%, 95% { opacity: .15; } }
 @keyframes ic-fog { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+.mi { width: 11px; height: 11px; vertical-align: -1px; margin-right: 3px; }
 /* ingresso morbido dei contenuti, al caricamento e al cambio di scheda */
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 .place-row { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
@@ -435,27 +476,8 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 .tab > * { animation: rise .6s cubic-bezier(.2,.7,.2,1) both; }
 .tab > :nth-child(2) { animation-delay: .06s; } .tab > :nth-child(3) { animation-delay: .12s; }
 .tab > :nth-child(4) { animation-delay: .18s; } .tab > :nth-child(n+5) { animation-delay: .24s; }
-.days { display: grid; grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); gap: 10px; }
-.dcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 4px; justify-items: center; text-align: center; min-width: 0; box-shadow: var(--shadow); }
-.dcard.today { border-color: var(--brand-ink); box-shadow: inset 0 0 0 1px var(--brand-ink); }
-.dcard .dh { justify-self: stretch; display: flex; justify-content: space-between; font-size: .86rem; font-weight: 700; text-transform: capitalize; }
-.dcard .dh small { color: var(--ink-faint); font-weight: 500; }
-.dcard > svg { width: 40px; height: 40px; margin: 6px 0 2px; }
-.dcard .tt { font-variant-numeric: tabular-nums; }
-.dcard .tt b { font-size: 1.25rem; font-weight: 800; }
-.dcard .tt span { font-size: .9rem; font-weight: 500; margin-left: 5px; color: var(--ink-faint); }
-.dcard .dc { font-size: .74rem; color: var(--ink-soft); min-height: 2.5em; line-height: 1.25; text-wrap: balance; }
-.dcard .df { justify-self: stretch; display: flex; justify-content: space-between; gap: 6px; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--line); font-size: .7rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dcard .df .pp { color: var(--rain); }
-.dcard .mm { font-size: .72rem; color: var(--rain); min-height: 1.1em; font-variant-numeric: tabular-nums; }
-.flags { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 18px; }
-.flags span { font-size: .62rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; }
-.flags .cold { color: var(--rain); background: color-mix(in srgb, var(--rain) 12%, transparent); }
-.flags .hot { color: var(--al-orange); background: color-mix(in srgb, var(--al-orange) 14%, transparent); }
-.mi { width: 11px; height: 11px; vertical-align: -1px; margin-right: 3px; }
-@media (max-width: 900px) { .days { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; } .dcard { flex: 0 0 136px; scroll-snap-align: start; } }
 
-.foot { margin-top: 72px; padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .75rem; line-height: 1.6; }
+.foot { margin-top: 40px; padding: 22px 4px 40px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .75rem; line-height: 1.6; text-shadow: 0 1px 8px rgba(0,0,0,.2); }
 .foot p { margin: 0 0 10px; }
 .foot a { color: var(--ink-soft); }
 .seo { margin-bottom: 26px; display: grid; gap: 10px; }
@@ -477,6 +499,16 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 </head>
 <body>
 
+<div class="sky" id="sky" aria-hidden="true">
+  <div class="sky-l s-stars" id="stars"></div>
+  <div class="sky-l s-glow" id="glow"></div>
+  <div class="sky-l s-clouds"><i></i><i></i><i></i><i></i></div>
+  <div class="sky-l s-fog"></div>
+  <div class="sky-l s-rain"></div>
+  <div class="sky-l s-snow"></div>
+  <div class="sky-l s-flash"></div>
+</div>
+
 <nav class="nav">
   <div class="container">
     <a class="brand" href="/">
@@ -487,35 +519,26 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
   </div>
 </nav>
 
-<div class="sky" id="sky">
-  <div class="sky-l s-stars" id="stars"></div>
-  <div class="sky-l s-glow" id="glow"></div>
-  <div class="sky-l s-clouds"><i></i><i></i><i></i><i></i></div>
-  <div class="sky-l s-fog"></div>
-  <div class="sky-l s-rain"></div>
-  <div class="sky-l s-snow"></div>
-  <div class="sky-l s-flash"></div>
-  <header class="hero container" aria-live="polite">
-    <div class="kicker"><span class="pill live"><i class="dot"></i>In diretta</span><h1>Previsioni per la Romagna</h1></div>
-    <div class="place-row">
-      <button class="fav" type="button" id="fav" aria-pressed="false" aria-label="Salva come la mia località">☆</button>
-      <select class="picker" id="picker" aria-label="Scegli la località"></select>
-    </div>
-    <div class="now-hero">
-      <b class="now-t" id="tNow">--°</b>
-      <svg id="iNow" class="anim" viewBox="0 0 64 64" aria-hidden="true"></svg>
-      <div class="now-c"><span id="cNow">Carico…</span><small id="nowMeta">&nbsp;</small></div>
-    </div>
-    <p class="fav-hint" id="favHint"></p>
-    <a class="abanner" id="aBanner" href="#allerte" hidden></a>
-  </header>
-</div>
+<header class="hero container" aria-live="polite">
+  <div class="kicker"><span class="pill live"><i class="dot"></i>In diretta</span><h1>Previsioni per la Romagna</h1></div>
+  <div class="place-row">
+    <button class="fav" type="button" id="fav" aria-pressed="false" aria-label="Salva come la mia località">☆</button>
+    <select class="picker" id="picker" aria-label="Scegli la località"></select>
+  </div>
+  <div class="now-hero">
+    <b class="now-t" id="tNow">--°</b>
+    <div class="now-c"><svg id="iNow" class="anim" viewBox="0 0 64 64" aria-hidden="true"></svg><span id="cNow">Carico…</span></div>
+    <span class="now-hl" id="nowMeta">&nbsp;</span>
+  </div>
+  <p class="fav-hint" id="favHint"></p>
+  <a class="abanner" id="aBanner" href="#allerte" hidden></a>
+</header>
 
 <main class="container">
   <p class="card tip" id="installTip" hidden>Su iPhone: tocca <b>Condividi</b> e poi <b>Aggiungi alla schermata Home</b>. Cielo Romagna si aprirà come un'app, sulla tua località.</p>
 
   <section class="card sum" id="riepilogo" aria-live="polite">
-    <div class="sum-q">Pioverà?</div>
+    <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 18 0z"/><path d="M12 12v6.5a2 2 0 0 1-4 0"/></svg>Pioverà?</div>
     <div id="sDays"><div class="sday"><span class="sd-k">Oggi</span><span class="ans na">…</span><span class="sd-txt">Carico le previsioni…</span><span></span></div></div>
     <div class="sum-chips"><a class="schip" id="sAlert" href="#allerte" style="--lvl:var(--ink-faint)"><i></i>Allerte…</a><a class="schip" id="sRiver" href="#fiumi" style="--lvl:var(--ink-faint)"><i></i>Fiumi…</a></div>
     <div class="sum-foot"><span id="updated">—</span><button class="linkbtn" type="button" id="reload">Aggiorna ›</button></div>
@@ -529,52 +552,48 @@ details.more > summary { cursor: pointer; color: var(--brand-ink); font-size: .9
 
   <!-- ===================== Scheda Previsioni ===================== -->
   <section class="tab" id="previsioni">
-    <div class="block">
-      <div class="eyebrow">Ora per ora</div>
-      <h2>Le prossime 24 ore</h2>
-      <p class="sub">Temperatura, probabilità di pioggia e raffiche di vento ora per ora.</p>
-      <div class="card"><div class="hchart-wrap" id="hours"><span class="loading">Carico…</span></div>
-        <div class="hleg"><span><i class="lg-line"></i>temperatura</span><span><i class="lg-bar"></i>probabilità di pioggia (più scura se forte)</span><span><i class="lg-night"></i>notte</span><span>in basso: raffiche in km/h</span></div></div>
-    </div>
+    <section class="block card" id="ore">
+      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Le prossime 24 ore</h2>
+      <p class="lead" id="hoursLead">Temperatura, probabilità di pioggia e raffiche di vento ora per ora.</p>
+      <div class="hchart-wrap" id="hours"><span class="loading">Carico…</span></div>
+      <div class="hleg"><span><i class="lg-line"></i>temperatura</span><span><i class="lg-bar"></i>probabilità di pioggia (più scura se forte)</span><span><i class="lg-night"></i>notte</span><span>in basso: raffiche in km/h</span></div>
+    </section>
 
-    <div class="block">
-      <div class="eyebrow">Settimana</div>
-      <h2>Prossimi 7 giorni</h2>
-      <p class="sub">Con gelate notturne e caldo in evidenza.</p>
-      <div class="days" id="days" style="--n: 7"><span class="loading">Carico…</span></div>
-    </div>
+    <section class="block card half" id="settimana">
+      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Prossimi 7 giorni</h2>
+      <div class="days" id="days"><span class="loading">Carico…</span></div>
+    </section>
 
-    <div class="block" id="radar">
-      <div class="eyebrow">Radar</div>
-      <h2>Il cielo adesso</h2>
-      <p class="sub">Radar delle ultime due ore, un'immagine ogni 10 minuti. Tocca un numero sulla mappa per cambiare località.</p>
-      <div class="row">
-        <div class="radar">
-          <div id="map" aria-label="Radar delle precipitazioni sulla Romagna"></div>
-          <span class="badge live">Radar</span>
-          <span class="badge time" id="rTime">--:--</span>
-          <div class="rfoot">
-            <div class="rain-now" id="rainNow">Leggo il radar…</div>
-            <div class="rbar">
-              <button class="rbtn" type="button" id="rPlay" aria-label="Pausa">❚❚</button>
-              <div class="rprog"><i id="rProg"></i></div>
-              <span class="rleg"><span>debole</span><i></i><span>forte</span></span>
-            </div>
+    <section class="block card half" id="radar">
+      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Radar · il cielo adesso</h2>
+      <p class="lead plain">Ultime due ore, un'immagine ogni 10 minuti. Tocca un numero sulla mappa per cambiare località.</p>
+      <div class="radar">
+        <div id="map" aria-label="Radar delle precipitazioni sulla Romagna"></div>
+        <span class="badge live">Radar</span>
+        <span class="badge time" id="rTime">--:--</span>
+        <div class="rfoot">
+          <div class="rain-now" id="rainNow">Leggo il radar…</div>
+          <div class="rbar">
+            <button class="rbtn" type="button" id="rPlay" aria-label="Pausa">❚❚</button>
+            <div class="rprog"><i id="rProg"></i></div>
+            <span class="rleg"><span>debole</span><i></i><span>forte</span></span>
           </div>
         </div>
-        <div class="card">
-          <div class="now-top"><span class="on"><i class="dot"></i>Adesso a <span id="nowName">…</span></span></div>
-          <div class="widgets" id="widgets"><span class="loading">Carico…</span></div>
-        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="block" id="localita">
-      <div class="eyebrow">Località</div>
-      <h2>Oggi in Romagna</h2>
-      <p class="sub">Temperatura adesso, massima e minima di oggi e probabilità di pioggia. Tocca una località per vederla nel riepilogo.</p>
-      <div id="places"><span class="loading">Carico…</span></div>
-    </div>
+    <section class="block" id="adesso">
+      <div class="now-top outside"><h2 class="lbl"><i class="dot" style="color:var(--live)"></i>Adesso a <span id="nowName">…</span></h2></div>
+      <div class="widgets" id="widgets"><span class="loading">Carico…</span></div>
+    </section>
+
+    <section class="block" id="localita">
+      <div class="outside">
+        <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Oggi in Romagna</h2>
+        <p class="lead plain">Tocca una località per vederla in alto.</p>
+      </div>
+      <div id="places" style="margin-top:12px"><span class="loading">Carico…</span></div>
+    </section>
 
     <details class="more" id="esperti">
       <summary>Per esperti: i quattro modelli a confronto</summary>
@@ -710,7 +729,6 @@ const RIVER_SHORT = { "Bidente-Ronco": "Ronco", "Rubicone e Pisciatello": "Rubic
 
 const REFRESH_MS = 15 * 60 * 1000, RADAR_MS = 10 * 60 * 1000, RADAR_FRESH_MS = 30 * 60 * 1000;
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LIGHT = matchMedia("(prefers-color-scheme: light)");
 const MODELS = [
   { key: "italia_meteo_arpae_icon_2i",  name: "ICON-2I", by: "ARPAE · 2 km" },
   { key: "icon_d2",                     name: "ICON-D2", by: "DWD · 2 km" },
@@ -823,12 +841,12 @@ function select(id) {
 const OM = "https://api.open-meteo.com/v1/forecast?";
 const overviewURL = () => OM + new URLSearchParams({
   latitude: PLACES.map(p => p.lat).join(","), longitude: PLACES.map(p => p.lon).join(","), timezone: "Europe/Rome", forecast_days: 7,
-  current: "temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day,uv_index",
+  current: "temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day,uv_index,pressure_msl,visibility",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max,sunrise,sunset"
 });
 const hourlyURL = p => OM + new URLSearchParams({
   latitude: p.lat, longitude: p.lon, timezone: "Europe/Rome", forecast_days: 2,
-  hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m,is_day"
+  hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m,is_day,pressure_msl"
 });
 const modelsURL = p => OM + new URLSearchParams({
   latitude: p.lat, longitude: p.lon, timezone: "Europe/Rome", forecast_days: 3,
@@ -851,18 +869,28 @@ const CLOUD_TINT = { day: "rgba(255,255,255,.42)", dawn: "rgba(255,214,205,.32)"
 $("stars").style.backgroundImage = Array.from({ length: 70 }, () =>
   `radial-gradient(circle ${(Math.random() < .15 ? 1.6 : .9).toFixed(1)}px at ${(Math.random() * 100).toFixed(1)}% ${(Math.random() * 75).toFixed(1)}%, rgba(255,255,255,${(.45 + Math.random() * .55).toFixed(2)}), transparent)`).join(",");
 
-function renderSky() {
-  const d = ov(sel);
-  if (!d) return;
+// fase del giorno, condizione e colori del cielo di una località (serve alla pagina e alle card delle località)
+function skyOf(d, radarRain = false) {
   const c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10));
   const now = Date.now(), rise = new Date(D.sunrise[i]).getTime(), set = new Date(D.sunset[i]).getTime(), M = 45 * 60e3;
   const phase = Math.abs(now - rise) <= M ? "dawn" : Math.abs(now - set) <= M ? "dusk" : now > rise && now < set ? "day" : "night";
   const code = c.weather_code;
   let cond = code >= 95 ? "storm" : SNOW(code) ? "snow" : code >= 51 ? "rain" : code === 45 || code === 48 ? "fog" : code === 3 ? "cloudy" : code === 2 ? "partly" : "clear";
-  if (radarRainHere && !["rain", "storm", "snow"].includes(cond)) cond = "rain";
-  const g = SKY[cond === "partly" ? "clear" : cond][phase];
+  if (radarRain && !["rain", "storm", "snow"].includes(cond)) cond = "rain";
+  return { phase, cond, g: SKY[cond === "partly" ? "clear" : cond][phase] };
+}
+
+function renderSky() {
+  const d = ov(sel);
+  if (!d) return;
+  const { phase, cond, g } = skyOf(d, radarRainHere);
   const sky = $("sky");
   sky.style.setProperty("--s0", g[0]); sky.style.setProperty("--s1", g[1]); sky.style.setProperty("--s2", g[2]);
+  // vetro delle card: velatura scura sul cielo chiaro del giorno, chiara sul cielo scuro della notte
+  const night = phase === "night";
+  document.documentElement.style.setProperty("--glass", night ? "rgba(255,255,255,.07)" : cond === "clear" || cond === "partly" ? "rgba(14,40,80,.24)" : "rgba(20,26,36,.26)");
+  document.documentElement.style.setProperty("--bg", g[1]);
+  document.querySelector('meta[name="theme-color"]').content = g[0];
   sky.style.setProperty("--cl", ["rain", "storm"].includes(cond) && phase !== "night" ? "rgba(150,160,178,.38)" : CLOUD_TINT[phase]);
   const clear = cond === "clear" || cond === "partly";
   const glow = clear && phase === "day" ? "radial-gradient(circle at 84% 22%, rgba(255,236,170,.75) 0, rgba(255,214,120,.32) 7%, transparent 32%)"
@@ -1065,83 +1093,158 @@ function renderNow() {
   const c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10));
   $("tNow").textContent = rnd(c.temperature_2m) + "°";
   $("cNow").textContent = WMO[c.weather_code] ?? "—";
-  $("nowMeta").textContent = `Percepita ${rnd(c.apparent_temperature)}° · max ${rnd(D.temperature_2m_max[i])}° · min ${rnd(D.temperature_2m_min[i])}°`;
+  $("nowMeta").innerHTML = `<span>Max ${rnd(D.temperature_2m_max[i])}°</span><span>Min ${rnd(D.temperature_2m_min[i])}°</span>`;
   $("iNow").innerHTML = icon(c.weather_code, c.is_day);
   $("widgets").innerHTML = widgets(c, D, i);
   renderSky();
 }
 
-/* ---------- Widget di "Adesso": arco del sole, bussola del vento, UV, umidità, pioggia di oggi ---------- */
-const UV_BANDS = [[0, 3, "#2fbf71"], [3, 6, "#f2c62f"], [6, 8, "#f08a3c"], [8, 11, "#e5484d"], [11, 12, "#a855f7"]];   // scala di rischio OMS
+/* ---------- Riquadri di "Adesso", come quelli dell'app Meteo: percepita, pioggia, vento, sole, UV, umidità, visibilità, luna, pressione ---------- */
 const uvWord = v => v < 3 ? "basso" : v < 6 ? "moderato" : v < 8 ? "alto" : v < 11 ? "molto alto" : "estremo";
 const pt = (cx, cy, r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy - r * Math.sin(deg * Math.PI / 180)];
-// arco da un angolo all'altro in senso orario (180 = sinistra, 90 = in alto, 0 = destra)
-function arc(cx, cy, r, a0, a1) {
-  const [x0, y0] = pt(cx, cy, r, a0), [x1, y1] = pt(cx, cy, r, a1);
-  return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)}`;
-}
 const durata = m => m >= 60 ? `${Math.floor(m / 60)} h ${hh(m % 60)}` : `${m} min`;
-const DROP_PATH = "M32 6C24 18 16 28 16 39a16 16 0 0 0 32 0C48 28 40 18 32 6z";
+const cardinal16 = deg => ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSO","SO","OSO","O","ONO","NO","NNO"][Math.round(((deg % 360) + 360) % 360 / 22.5) % 16];
+const weekday = t => new Date(t + "T12:00").toLocaleDateString("it-IT", { weekday: "long" });
+// icone delle etichette, a tratto come quelle dell'app
+const WI = {
+  temp: '<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/>',
+  drop: '<path d="M12 3c-3.5 4.5-6 7.8-6 11a6 6 0 0 0 12 0c0-3.2-2.5-6.5-6-11z"/>',
+  wind: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',
+  uv: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  set: '<path d="M3 19h18M7 19a5 5 0 0 1 10 0M12 3v6M9 6.5 12 9.5l3-3M4.5 12.5l1.4 1.4M19.5 12.5l-1.4 1.4"/>',
+  rise: '<path d="M3 19h18M7 19a5 5 0 0 1 10 0M12 9.5v-6M9 6l3-3 3 3M4.5 12.5l1.4 1.4M19.5 12.5l-1.4 1.4"/>',
+  hum: '<path d="M3 7h9M3 11h12M3 15h7"/><path d="M18 10c-1.6 2-2.6 3.4-2.6 4.8a2.6 2.6 0 0 0 5.2 0c0-1.4-1-2.8-2.6-4.8z"/>',
+  eye: '<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  gauge: '<circle cx="12" cy="12" r="9"/><path d="M12 12l4-4"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  day: '<path d="M12 3v3M3.5 12h2M18.5 12h2M6 6.5 4.6 5.1M18 6.5l1.4-1.4"/><path d="M7 17a5 5 0 0 1 10 0"/><path d="M3 21h18"/>'
+};
+const wk = (ic, text) => `<span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WI[ic]}</svg>${text}</span>`;
+
+// fase della luna dal ciclo medio (29,53 giorni) a partire da una luna nuova nota, come nel messaggio Telegram del mattino
+const SYN = 29.530588853;
+function moonPhase(date = new Date()) {
+  const age = (((date - Date.UTC(2000, 0, 6, 18, 14)) / 864e5) % SYN + SYN) % SYN, Q = SYN / 4, near = t => Math.abs(age - t) < 1;
+  const name = age < 1 || age > SYN - 1 ? "Luna nuova" : near(Q) ? "Primo quarto" : near(2 * Q) ? "Luna piena" : near(3 * Q) ? "Ultimo quarto"
+    : age < Q ? "Luna crescente" : age < 2 * Q ? "Gibbosa crescente" : age < 3 * Q ? "Gibbosa calante" : "Luna calante";
+  // a fase appena raggiunta si conta già la prossima
+  const next = d => Math.round(d < 1 ? d + SYN : d);
+  return { f: age / SYN, name, lit: Math.round((1 - Math.cos(2 * Math.PI * age / SYN)) / 2 * 100), toFull: next((SYN / 2 - age + SYN) % SYN), toNew: next(SYN - age) };
+}
+// disegno della fase: bordo esterno sul lato illuminato e terminatore ellittico (crescente a destra, calante a sinistra)
+function moonSVG(f) {
+  const c = 52, r = 46, waxing = f < .5, crescent = f < .25 || f > .75, rx = Math.abs(Math.cos(2 * Math.PI * f)) * r;
+  const lit = `M${c},${c - r} A${r},${r} 0 0 ${waxing ? 1 : 0} ${c},${c + r} A${rx.toFixed(1)},${r} 0 0 ${waxing === crescent ? 0 : 1} ${c},${c - r}Z`;
+  return `<svg viewBox="0 0 104 104" aria-hidden="true"><circle cx="${c}" cy="${c}" r="${r}" fill="rgba(255,255,255,.1)"/>
+    <defs><clipPath id="wMoon"><path d="${lit}"/></clipPath></defs>
+    <g clip-path="url(#wMoon)"><circle cx="${c}" cy="${c}" r="${r}" fill="#e6ebf3"/><g fill="#c9d1dd"><circle cx="38" cy="38" r="9"/><circle cx="64" cy="30" r="5"/><circle cx="66" cy="62" r="11"/><circle cx="40" cy="70" r="6"/><circle cx="54" cy="48" r="3.5"/></g></g></svg>`;
+}
 
 function widgets(c, D, i) {
-  // luce: il sole percorre l'arco dall'alba al tramonto
-  const rise = new Date(D.sunrise[i]).getTime(), set = new Date(D.sunset[i]).getTime(), now = Date.now();
-  const day = now >= rise && now <= set, p = Math.min(1, Math.max(0, (now - rise) / (set - rise))), sa = 180 - 180 * p;
-  const [sx, sy] = pt(62, 56, 48, sa);
-  const luce = day ? `tramonto tra ${durata(Math.round((set - now) / 6e4))}`
-    : now < rise ? `alba tra ${durata(Math.round((rise - now) / 6e4))}` : `domani alba alle ${D.sunrise[i + 1]?.slice(11, 16) ?? "--"}`;
-  const sun = `<div class="wd wide"><svg viewBox="0 0 124 62" aria-hidden="true">
-      <path class="w-hor" d="M4 56H120"/><path class="w-track" d="${arc(62, 56, 48, 180, 0)}"/>
-      ${day && p > .01 ? `<path class="w-sun" d="${arc(62, 56, 48, 180, sa)}"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="6.5" fill="#FFD25A"/>`
-        : `<circle class="w-off" cx="${now < rise || !day && p < .5 ? 14 : 110}" cy="56" r="5"/>`}
-    </svg><div><span class="k">Luce</span><b>${D.sunrise[i].slice(11, 16)} – ${D.sunset[i].slice(11, 16)}</b><small>${luce}</small></div></div>`;
+  const now = Date.now();
 
-  // vento: la freccia indica dove va il vento, il testo da dove viene
-  const dir = c.wind_direction_10m;
-  const wind = `<div class="wd"><svg viewBox="0 0 64 64" aria-hidden="true">
-      <circle class="w-track" cx="32" cy="32" r="27"/>
-      ${["N", "E", "S", "O"].map((l, k) => { const [lx, ly] = pt(32, 32, 21, 90 - k * 90); return `<text class="w-card" x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="middle">${l}</text>`; }).join("")}
-      <g transform="rotate(${(dir + 180) % 360} 32 32)"><path class="w-arrow" d="M32 19l5 10h-3.2v15h-3.6V29H27z"/></g>
-    </svg><div><span class="k">Vento</span><b>${rnd(c.wind_speed_10m)} km/h</b><small>da ${cardinal(dir)} · raffiche ${rnd(c.wind_gusts_10m)}</small></div></div>`;
+  // temperatura percepita, con il perché quando si discosta da quella vera
+  const diff = c.apparent_temperature - c.temperature_2m;
+  const feel = Math.abs(diff) < 1.5 ? "Simile alla temperatura reale." : diff < 0
+    ? (c.wind_speed_10m >= 12 ? "Il vento la fa sembrare più fresca." : "Sembra più fresca dell'aria.")
+    : (c.relative_humidity_2m >= 60 ? "L'umidità la fa sembrare più calda." : "Sembra più calda dell'aria.");
+  const feelw = `<div class="wd card">${wk("temp", "Percepita")}<b class="wv">${rnd(c.apparent_temperature)}°</b><p class="ws">${feel}</p></div>`;
 
-  // UV: semicerchio con la scala di rischio e il segno sul valore attuale
-  const uv = c.uv_index ?? 0, uvMax = D.uv_index_max[i] ?? 0, ang = v => 180 - 180 * Math.min(v, 12) / 12;
-  const [ux, uy] = pt(32, 36, 26, ang(uv));
-  const uvw = `<div class="wd"><svg viewBox="0 0 64 42" aria-hidden="true">
-      ${UV_BANDS.map(([a, b, col]) => `<path class="w-band" stroke="${col}" d="${arc(32, 36, 26, ang(a), ang(b))}"/>`).join("")}
-      <circle class="w-needle" cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="4.5"/>
-    </svg><div><span class="k">Indice UV</span><b>${fmt1(uv)} <em>${uvWord(uv)}</em></b><small>massimo oggi ${fmt1(uvMax)}</small></div></div>`;
+  // precipitazioni di oggi e prossima giornata con pioggia
+  const mm = D.precipitation_sum[i] ?? 0;
+  const nk = D.time.findIndex((t, k) => k > i && (D.precipitation_sum[k] ?? 0) >= 0.5);
+  const nextRain = nk < 0 ? "Nessuna pioggia significativa nei prossimi giorni." : `Previsti ${fmt1(D.precipitation_sum[nk])} mm ${nk === i + 1 ? "domani" : weekday(D.time[nk])}.`;
+  const rainw = `<div class="wd card">${wk("drop", "Precipitazioni")}<b class="wv">${fmt1(mm)} mm</b><span class="wv2">Oggi</span><p class="ws">${nextRain}</p></div>`;
 
-  // umidità: la goccia si riempie
-  const hum = c.relative_humidity_2m;
-  const humw = `<div class="wd"><svg viewBox="0 0 64 64" aria-hidden="true">
-      <defs><clipPath id="wDrop"><path d="${DROP_PATH}"/></clipPath></defs>
-      <rect class="w-water" clip-path="url(#wDrop)" x="0" y="${(55 - 49 * hum / 100).toFixed(1)}" width="64" height="64"/>
-      <path class="w-track" d="${DROP_PATH}"/>
-    </svg><div><span class="k">Umidità</span><b>${rnd(hum)}%</b><small>punto di rugiada ${rnd(c.dew_point_2m)}°</small></div></div>`;
+  // vento: righe a sinistra, bussola a destra; la freccia indica dove va il vento, la direzione da dove viene
+  const dir = c.wind_direction_10m, C = 59, R = 54;
+  const ticks = Array.from({ length: 72 }, (_, k) => {
+    if (k % 18 === 0) return "";
+    const [x0, y0] = pt(C, C, R - (k % 2 ? 4 : 7), 90 - k * 5), [x1, y1] = pt(C, C, R, 90 - k * 5);
+    return `<path class="w-tick" style="stroke-width:${k % 2 ? 1 : 1.4}" d="M${x0.toFixed(1)} ${y0.toFixed(1)}L${x1.toFixed(1)} ${y1.toFixed(1)}"/>`;
+  }).join("");
+  const letters = ["N", "E", "S", "O"].map((l, k) => { const [lx, ly] = pt(C, C, R - 3, 90 - k * 90); return `<text class="w-card" x="${lx.toFixed(1)}" y="${(ly + 3.2).toFixed(1)}" text-anchor="middle">${l}</text>`; }).join("");
+  const windw = `<div class="wd wide card">${wk("wind", "Vento")}<div class="wrows">
+      <dl><div><dt>Vento</dt><dd>${rnd(c.wind_speed_10m)} km/h</dd></div><div><dt>Raffiche</dt><dd>${rnd(c.wind_gusts_10m)} km/h</dd></div><div><dt>Direzione</dt><dd>${rnd(dir)}° ${cardinal16(dir)}</dd></div></dl>
+      <svg viewBox="0 0 118 118" aria-hidden="true">${ticks}${letters}
+        <g transform="rotate(${(dir + 180) % 360} ${C} ${C})"><path d="M${C} ${C + R - 12}V${C - R + 16}" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path class="w-arrow" d="M${C} ${C - R + 9}l-6 10h12z"/><circle cx="${C}" cy="${C + R - 12}" r="4" fill="#fff"/></g>
+        <circle cx="${C}" cy="${C}" r="24" fill="rgba(0,0,0,.28)"/>
+        <text class="compass-v" x="${C}" y="${C + 3}" text-anchor="middle">${rnd(c.wind_speed_10m)}</text><text class="compass-u" x="${C}" y="${C + 15}" text-anchor="middle">km/h</text>
+      </svg></div></div>`;
 
-  // pioggia di oggi: pluviometro pieno a 20 mm
-  const mm = D.precipitation_sum[i] ?? 0, pmax = D.precipitation_probability_max[i] ?? 0, f = Math.min(1, mm / 20);
-  const rainw = `<div class="wd"><svg viewBox="0 0 64 64" aria-hidden="true">
-      ${f > 0 ? `<rect class="w-water" x="22" y="${(56 - 48 * f).toFixed(1)}" width="20" height="${(48 * f).toFixed(1)}" rx="3"/>` : ""}
-      <rect class="w-track" x="22" y="8" width="20" height="48" rx="4"/>${[20, 32, 44].map(y => `<path class="w-tick" d="M42 ${y}h5"/>`).join("")}
-    </svg><div><span class="k">Pioggia oggi</span><b>${fmt1(mm)} mm</b><small>probabilità fino al ${pmax}%</small></div></div>`;
+  // alba e tramonto: curva dell'altezza del sole nelle 24 ore, con la linea dell'orizzonte e il sole adesso
+  const rise = new Date(D.sunrise[i]).getTime(), set = new Date(D.sunset[i]).getTime();
+  const day0 = new Date(D.time[i] + "T00:00").getTime(), fr = t => (t - day0) / 864e5, noon = (fr(rise) + fr(set)) / 2;
+  const SW = 160, yAt = x => 30 - 20 * Math.cos(2 * Math.PI * (x - noon)), hor = yAt(fr(rise));
+  const curve = Array.from({ length: 49 }, (_, k) => `${k ? "L" : "M"}${(k / 48 * SW).toFixed(1)} ${yAt(k / 48).toFixed(1)}`).join("");
+  const fn = Math.min(1, Math.max(0, fr(now))), isDay = now >= rise && now <= set;
+  const [big, bigT, smallT] = isDay ? ["set", "Tramonto", `Alba: ${D.sunrise[i].slice(11, 16)}`]
+    : now < rise ? ["rise", "Alba", `Tramonto: ${D.sunset[i].slice(11, 16)}`] : ["rise", "Alba", `Tramonto: ${D.sunset[i].slice(11, 16)}`];
+  const bigTime = isDay ? D.sunset[i].slice(11, 16) : now < rise ? D.sunrise[i].slice(11, 16) : D.sunrise[i + 1]?.slice(11, 16) ?? "--";
+  const sunw = `<div class="wd card">${wk(big, bigT)}<b class="wv">${bigTime}</b>
+      <svg class="sunc" viewBox="0 0 ${SW} 54" aria-hidden="true"><defs><clipPath id="wSky"><rect x="0" y="0" width="${SW}" height="${hor.toFixed(1)}"/></clipPath></defs>
+        <path class="lo" d="${curve}"/><path class="hi" clip-path="url(#wSky)" d="${curve}"/><path class="w-hor" d="M0 ${hor.toFixed(1)}H${SW}"/>
+        <circle cx="${(fn * SW).toFixed(1)}" cy="${yAt(fn).toFixed(1)}" r="5" fill="${isDay ? "#fff" : "rgba(255,255,255,.45)"}" style="filter:drop-shadow(0 0 4px rgba(255,255,255,.8))"/></svg>
+      <p class="ws">${smallT}</p></div>`;
 
-  return sun + wind + uvw + humw + rainw;
+  // UV: valore, giudizio e la barra della scala di rischio con il pallino
+  const uv = c.uv_index ?? 0, uvMax = D.uv_index_max[i] ?? 0;
+  const uvw = `<div class="wd card">${wk("uv", "Indice UV")}<b class="wv">${rnd(uv)}</b><span class="wv2">${uvWord(uv)[0].toUpperCase() + uvWord(uv).slice(1)}</span>
+      <div class="uvbar"><i style="left:${(Math.min(uv, 11) / 11 * 100).toFixed(1)}%"></i></div>
+      <p class="ws">${uvMax < 3 ? "Basso per il resto della giornata." : `Massimo di oggi ${rnd(uvMax)}, ${uvWord(uvMax)}.`}</p></div>`;
+
+  // umidità e visibilità
+  const humw = `<div class="wd card">${wk("hum", "Umidità")}<b class="wv">${rnd(c.relative_humidity_2m)}%</b><p class="ws">Punto di rugiada: ${rnd(c.dew_point_2m)}°.</p></div>`;
+  const vis = c.visibility ?? null;
+  const visw = vis == null ? "" : `<div class="wd card">${wk("eye", "Visibilità")}<b class="wv">${vis < 1000 ? rnd(vis / 10) * 10 + " m" : rnd(vis / 1000) + " km"}</b>
+      <p class="ws">${vis >= 20000 ? "Visibilità molto buona." : vis >= 10000 ? "Buona visibilità." : vis >= 4000 ? "Visibilità discreta." : vis >= 1000 ? "Foschia: visibilità ridotta." : "Nebbia: visibilità scarsa."}</p></div>`;
+
+  // luna: fase, illuminazione, prossime fasi principali
+  const m = moonPhase();
+  const moonw = `<div class="wd wide card moonw">${wk("moon", m.name)}<div class="wrows">
+      <dl><div><dt>Illuminazione</dt><dd>${m.lit}%</dd></div><div><dt>Prossima luna piena</dt><dd>${m.toFull} ${m.toFull === 1 ? "giorno" : "giorni"}</dd></div><div><dt>Prossima luna nuova</dt><dd>${m.toNew} ${m.toNew === 1 ? "giorno" : "giorni"}</dd></div></dl>
+      ${moonSVG(m.f)}</div></div>`;
+
+  // pressione: quadrante da 970 a 1050 hPa, con la tendenza delle ultime 3 ore se ci sono già le previsioni orarie
+  const p = c.pressure_msl;
+  let trend = 0;
+  if (hourly?.hourly?.pressure_msl) {
+    const H = hourly.hourly, k = H.time.findIndex(t => t.startsWith(c.time.slice(0, 13)));
+    if (k >= 3 && H.pressure_msl[k] != null && H.pressure_msl[k - 3] != null) { const dp = H.pressure_msl[k] - H.pressure_msl[k - 3]; trend = dp >= 1 ? 1 : dp <= -1 ? -1 : 0; }
+  }
+  const pa = v => 225 - 270 * Math.min(1, Math.max(0, (v - 970) / 80)), G = 60;
+  const gt = Array.from({ length: 41 }, (_, k) => {
+    const a = 225 - 270 * k / 40, [x0, y0] = pt(G, G, 44, a), [x1, y1] = pt(G, G, 52, a);
+    return `<path class="tk" d="M${x0.toFixed(1)} ${y0.toFixed(1)}L${x1.toFixed(1)} ${y1.toFixed(1)}"/>`;
+  }).join("");
+  const [px0, py0] = pt(G, G, 41, pa(p)), [px1, py1] = pt(G, G, 55, pa(p));
+  const arrow = trend > 0 ? `<path class="ga" d="M${G} ${G - 8}v-14M${G - 5} ${G - 17}l5-5 5 5"/>` : trend < 0 ? `<path class="ga" d="M${G} ${G - 22}v14M${G - 5} ${G - 13}l5 5 5-5"/>` : `<path class="ga" d="M${G - 7} ${G - 15}h14"/>`;
+  const pressw = p == null ? "" : `<div class="wd card">${wk("gauge", "Pressione")}
+      <svg class="gauge" viewBox="0 0 120 112" aria-hidden="true">${gt}<path class="tk on" d="M${px0.toFixed(1)} ${py0.toFixed(1)}L${px1.toFixed(1)} ${py1.toFixed(1)}"/>${arrow}
+        <text class="gv" x="${G}" y="${G + 10}" text-anchor="middle">${rnd(p)}</text><text class="gu" x="${G}" y="${G + 23}" text-anchor="middle">hPa</text></svg>
+      <p class="ws">${trend > 0 ? "In aumento nelle ultime 3 ore." : trend < 0 ? "In calo nelle ultime 3 ore." : hourly ? "Stabile nelle ultime 3 ore." : "&nbsp;"}</p></div>`;
+
+  // durata del giorno e differenza con domani
+  const len = Math.round((set - rise) / 6e4);
+  const len2 = D.sunrise[i + 1] ? Math.round((new Date(D.sunset[i + 1]) - new Date(D.sunrise[i + 1])) / 6e4) : null, dd = len2 == null ? null : len2 - len;
+  const dayw = `<div class="wd card">${wk("day", "Durata del giorno")}<b class="wv">${durata(len)}</b>
+      <p class="ws">${dd == null ? "" : dd === 0 ? "Domani uguale a oggi." : `Domani ${Math.abs(dd)} min in ${dd < 0 ? "meno" : "più"}.`}</p></div>`;
+
+  return feelw + rainw + windw + sunw + uvw + humw + visw + moonw + pressw + dayw;
 }
 
-/* ---------- Località ---------- */
+/* ---------- Località: ogni card ha il cielo della sua località, come l'elenco delle città dell'app ---------- */
 function renderPlaces() {
   if (!overview) return;
-  $("places").innerHTML = Object.entries(GROUPS).map(([g, G]) => `<div class="group"><h3>${G.name}</h3><div class="places">${
+  $("places").innerHTML = Object.entries(GROUPS).map(([g, G]) => `<div class="group"><h3 class="outside">${G.name}</h3><div class="places">${
     PLACES.filter(p => p.group === g).map(p => {
-      const d = ov(p), c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10));
+      const d = ov(p), c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10)), s = skyOf(d);
       const prob = D.precipitation_probability_max[i] ?? 0;
-      return `<button type="button" class="place" data-place="${p.id}" aria-pressed="${p === sel}" title="${esc(WMO[c.weather_code] ?? "")}">
+      return `<button type="button" class="place" data-place="${p.id}" aria-pressed="${p === sel}" style="--p0:${s.g[0]};--p1:${s.g[2]}">
         <span class="pn">${p === fav ? "★ " : ""}${esc(p.name)}</span>
-        <span class="pr"><svg viewBox="0 0 64 64" aria-hidden="true">${icon(c.weather_code, c.is_day)}</svg><span class="pt">${rnd(c.temperature_2m)}°</span></span>
-        <span class="pd">max ${rnd(D.temperature_2m_max[i])}° · min ${rnd(D.temperature_2m_min[i])}°</span>
-        <span class="pp">${prob >= 10 ? DROP + prob + "%" : ""}</span>
+        <span class="pt">${rnd(c.temperature_2m)}°</span>
+        <span class="pc">${esc(WMO[c.weather_code] ?? "")}</span>
+        <span class="pd"><span class="pp">${prob >= 10 ? DROP + prob + "%" : ""}</span><span>Max ${rnd(D.temperature_2m_max[i])}° Min ${rnd(D.temperature_2m_min[i])}°</span></span>
       </button>`;
     }).join("")}</div></div>`).join("");
 }
@@ -1149,33 +1252,45 @@ document.addEventListener("click", e => {
   const b = e.target.closest("[data-place]");
   if (b) {
     select(b.dataset.place);
-    // le card delle località stanno in basso: si torna su al riepilogo
-    $("riepilogo").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+    // le card delle località stanno in basso: si torna su alla testata
+    scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
   }
   const r = e.target.closest("[data-river]");
   if (r) { riverSel = r.dataset.river; riverPicked = true; renderRivers(); }
 });
 
 /* ---------- Previsioni della località scelta ---------- */
+// colore della temperatura per le barre dei 7 giorni, dal blu del freddo al rosso del caldo, come nell'app
+const T_STOPS = [[-5, [94, 140, 255]], [5, [79, 195, 247]], [12, [125, 216, 125]], [18, [214, 224, 90]], [24, [255, 201, 74]], [30, [255, 138, 61]], [36, [255, 77, 77]]];
+function tempColor(t) {
+  const k = T_STOPS.findIndex(s => t <= s[0]);
+  if (k <= 0) return `rgb(${T_STOPS[k < 0 ? T_STOPS.length - 1 : 0][1]})`;
+  const [t0, c0] = T_STOPS[k - 1], [t1, c1] = T_STOPS[k], f = (t - t0) / (t1 - t0);
+  return `rgb(${c0.map((v, j) => Math.round(v + (c1[j] - v) * f))})`;
+}
 function renderDays() {
   const d = ov(sel);
   if (!d) return;
   const D = d.daily, today = d.current.time.slice(0, 10), i = D.time.indexOf(today);
-  $("days").innerHTML = D.time.map((t, k) => {
-    if (t < today) return "";
-    const date = new Date(t + "T12:00");
-    const name = t === today ? "Oggi" : k === i + 1 ? "Domani" : date.toLocaleDateString("it-IT", { weekday: "short" });
+  const ks = D.time.map((t, k) => k).filter(k => D.time[k] >= today);
+  // la barra di ogni giorno sta sulla scala comune della settimana
+  const lo = Math.min(...ks.map(k => D.temperature_2m_min[k])), hi = Math.max(...ks.map(k => D.temperature_2m_max[k])), span = Math.max(1, hi - lo);
+  const pos = t => ((t - lo) / span * 100).toFixed(1);
+  $("days").innerHTML = ks.map(k => {
+    const t = D.time[k];
+    const name = t === today ? "Oggi" : k === i + 1 ? "Domani" : new Date(t + "T12:00").toLocaleDateString("it-IT", { weekday: "short" });
     const mx = D.temperature_2m_max[k], mn = D.temperature_2m_min[k], amx = D.apparent_temperature_max[k] ?? mx, mm = D.precipitation_sum[k] ?? 0;
-    const flags = [mn <= 0 ? '<span class="cold">Gelata</span>' : mn <= 3 ? '<span class="cold">Brina?</span>' : "",
-                   amx >= 35 ? '<span class="hot">Caldo forte</span>' : amx >= 30 ? '<span class="hot">Caldo</span>' : ""].join("");
-    return `<div class="dcard${t === today ? " today" : ""}">
-      <div class="dh"><span>${name}</span><small>${date.getDate()}</small></div>
-      <svg viewBox="0 0 64 64" aria-hidden="true">${icon(D.weather_code[k], 1)}</svg>
-      <div class="tt"><b>${rnd(mx)}°</b><span>${rnd(mn)}°</span></div>
-      <div class="dc">${(WMO[D.weather_code[k]] ?? "").toLowerCase()}</div>
-      <div class="mm">${mm >= 0.5 ? fmt1(mm) + " mm" : ""}</div>
-      <div class="flags">${flags}</div>
-      <div class="df"><span>${windArrow(D.wind_direction_10m_dominant[k])}${rnd(D.wind_gusts_10m_max[k])} km/h</span><span class="pp">${DROP}${D.precipitation_probability_max[k] ?? 0}%</span></div>
+    const prob = D.precipitation_probability_max[k] ?? 0;
+    const flag = mn <= 0 ? '<small class="cold">Gelata</small>' : mn <= 3 ? '<small class="cold">Brina?</small>'
+      : amx >= 35 ? '<small class="hot">Caldo forte</small>' : amx >= 30 ? '<small class="hot">Caldo</small>' : "";
+    const nowT = t === today ? ov(sel).current.temperature_2m : null;
+    const title = `${WMO[D.weather_code[k]] ?? ""} · pioggia ${prob}%${mm >= 0.5 ? ", " + fmt1(mm) + " mm" : ""} · raffiche ${rnd(D.wind_gusts_10m_max[k])} km/h da ${cardinal(D.wind_direction_10m_dominant[k])}`;
+    return `<div class="dr" title="${esc(title)}">
+      <span class="dn">${name}${flag}</span>
+      <span class="di"><svg viewBox="0 0 64 64" aria-hidden="true">${icon(D.weather_code[k], 1)}</svg>${prob >= 20 ? `<small>${prob}%</small>` : ""}</span>
+      <span class="dmin">${rnd(mn)}°</span>
+      <span class="dbar"><i style="left:${pos(mn)}%;right:${(100 - pos(mx)).toFixed(1)}%;background:linear-gradient(90deg, ${tempColor(mn)}, ${tempColor(mx)})"></i>${nowT != null ? `<b style="left:${pos(Math.min(mx, Math.max(mn, nowT)))}%"></b>` : ""}</span>
+      <span class="dmax">${rnd(mx)}°</span>
     </div>`;
   }).join("");
 }
@@ -1214,6 +1329,10 @@ function renderHours(h) {
       ${prob >= 10 ? `<text class="pl" x="${x(k)}" y="${(BAR0 - bh - 4).toFixed(1)}" text-anchor="middle">${prob}%</text>` : ""}
       <text class="gl" x="${x(k)}" y="${BAR0 + 18}" text-anchor="middle">${rnd(H.wind_gusts_10m[i] ?? 0)}</text>`;
   }).join("");
+  // frase in cima alla card, come nell'app: minima e massima con l'ora, raffica più forte
+  const at = v => H.time[idx[temps.indexOf(v)]].slice(11, 13);
+  const tmin = Math.min(...temps), tmax = Math.max(...temps), gust = Math.max(...idx.map(i => H.wind_gusts_10m[i] ?? 0));
+  $("hoursLead").textContent = `Minima ${rnd(tmin)}° alle ${at(tmin)}, massima ${rnd(tmax)}° alle ${at(tmax)}. Raffiche fino a ${rnd(gust)} km/h.`;
   $("hours").innerHTML = `<svg class="hchart" width="${W}" height="${HT}" viewBox="0 0 ${W} ${HT}" role="img" aria-label="Temperatura e pioggia nelle prossime 24 ore">
     <defs><linearGradient id="hGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ink);stop-opacity:.16"/><stop offset="1" style="stop-color:var(--ink);stop-opacity:0"/></linearGradient></defs>
     ${night}<rect class="nowc" x="2" y="2" width="${CW - 4}" height="${HT - 4}" rx="10"/>
@@ -1295,7 +1414,8 @@ async function loadDetail() {
   if (seq !== detailSeq) return;
   hourly = h.status === "fulfilled" ? h.value : null;
   models = m.status === "fulfilled" ? m.value : null;
-  if (hourly) renderHours(hourly);
+  // con le ore arriva anche la tendenza della pressione nei riquadri di "Adesso"
+  if (hourly) { renderHours(hourly); renderNow(); }
   else $("hours").innerHTML = `<span class="loading">Previsioni orarie non raggiungibili in questo momento.</span>`;
   if (models) renderModels(models);
   else $("trustTitle").textContent = "Confronto tra modelli non disponibile in questo momento";
@@ -1305,22 +1425,12 @@ async function loadDetail() {
 /* ---------- Radar: mappa animata con le temperature delle località ---------- */
 const map = L.map("map", { zoomControl: true, scrollWheelZoom: false, attributionControl: true });
 map.fitBounds(L.latLngBounds(PLACES.map(p => [p.lat, p.lon])).pad(0.12));
-// sfondo Esri senza chiave, grigio scuro o chiaro come il tema; i nomi delle località stanno sopra il radar
+// sfondo Esri senza chiave, grigio scuro come le card; i nomi delle località stanno sopra il radar
 const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
-let baseLayers = [];
-function setBaseMap() {
-  baseLayers.forEach(l => map.removeLayer(l));
-  const v = LIGHT.matches ? "Light" : "Dark";
-  baseLayers = [
-    L.tileLayer(ESRI + `World_${v}_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
-      maxZoom: 12, zIndex: 1, attribution: 'Mappa © <a href="https://www.esri.com/">Esri</a>, © OpenStreetMap · Radar <a href="https://www.rainviewer.com/">RainViewer</a>'
-    }),
-    L.tileLayer(ESRI + `World_${v}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 12, zIndex: 10 })
-  ];
-  baseLayers.forEach(l => l.addTo(map));
-}
-setBaseMap();
-LIGHT.addEventListener("change", setBaseMap);
+L.tileLayer(ESRI + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 12, zIndex: 1, attribution: 'Mappa © <a href="https://www.esri.com/">Esri</a>, © OpenStreetMap · Radar <a href="https://www.rainviewer.com/">RainViewer</a>'
+}).addTo(map);
+L.tileLayer(ESRI + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, zIndex: 10 }).addTo(map);
 
 const markers = new Map();
 function updateMarkers() {
