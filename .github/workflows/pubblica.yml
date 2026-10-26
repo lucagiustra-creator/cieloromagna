@@ -1,6 +1,6 @@
 name: Pubblica sito e dati ARPAE
 
-# Ogni 15 minuti (lanciato da cron-job.org via API; la schedule di GitHub fa da riserva, spesso salta) scarica allerte e livelli dei fiumi da Allerta Meteo ER e ripubblica il sito con dati.json accanto;
+# Ogni 15 minuti (in teoria: le schedule di GitHub spesso arrivano ogni 2-4 ore) scarica allerte e livelli dei fiumi da Allerta Meteo ER e ripubblica il sito con dati.json accanto;
 # gira anche a ogni push su main, così le modifiche alla pagina vanno online subito.
 on:
   schedule:

@@ -10,14 +10,6 @@ const SITE = "cieloromagna.it";
 const DRY = process.env.DRY === "1";           // solo stampa il messaggio, senza inviarlo
 if (!TOKEN && !DRY) throw new Error("manca TELEGRAM_BOT_TOKEN");
 
-// la riserva gira alle 5:40 e alle 6:40 UTC (le 7:40 italiane sono le 6:40 UTC d'inverno e le 5:40 d'estate): si invia solo dal cron giusto
-if (MODE === "mattina" && process.env.SCHEDULE) {
-  const romeHour = +new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hourCycle: "h23" }).format(new Date());
-  const offset = (romeHour - new Date().getUTCHours() + 24) % 24;
-  const want = (7 - offset + 24) % 24, cronHour = +process.env.SCHEDULE.split(" ")[1];
-  if (cronHour !== want) { console.log(`cron delle ${cronHour} UTC: oggi le 7 italiane sono le ${want} UTC, non invio`); process.exit(0); }
-}
-
 const api = async (method, body) => {
   const r = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {})
