@@ -8,6 +8,8 @@ const LEVEL = "254,0,0/1,-,-,-/B13215";
 const PREV_URL = process.env.PREV_URL || "https://lucagiustra-creator.github.io/cieloromagna/dati.json";
 const UA = { "User-Agent": "cieloromagna.it (GitHub Action, progetto personale non commerciale)" };
 const KEEP_MS = 48 * 3600e3, STEP_MS = 3600e3;
+// sensore guasto: salto di più di 1 m tra due letture vicine che nessun'altra stazione conferma (vedi in fondo)
+const SALTO_M = 1, SALTO_MS = 35 * 60e3, CONFERMA_M = 0.3, CONFERMA_MS = 6 * 3600e3;
 
 // zone di allertamento che coprono la Romagna (C2 e D1 comprendono anche comuni bolognesi)
 const ZONES = ["A1", "A2", "B1", "B2", "C2", "D1"];
@@ -62,7 +64,11 @@ async function station(id, meta) {
   const soglie = [m?.soglia1, m?.soglia2, m?.soglia3].map(v => v ? v : null);
   // ARPAE dà le coordinate in centomillesimi di grado
   const lat = m?.lat ? +m.lat / 1e5 : null, lon = m?.lon ? +m.lon / 1e5 : null;
-  return { id, name: m?.nomestaz ?? id, lat, lon, soglie, series: thin(series) };
+  // l'ultimo salto verso l'alto va cercato sulla serie completa: quella salvata ha un punto all'ora
+  let salto = null;
+  for (let i = 1; i < series.length; i++)
+    if (series[i][1] - series[i - 1][1] > SALTO_M && series[i][0] - series[i - 1][0] <= SALTO_MS) salto = { dal: series[i][0], base: series[i - 1][1] };
+  return { id, name: m?.nomestaz ?? id, lat, lon, soglie, series: thin(series), salto };
 }
 
 // poche richieste alla volta per non pesare sul server ARPAE
@@ -119,6 +125,27 @@ for (const r of RIVERS) {
       return prevStation(r.stazioni[i]) ?? { id: r.stazioni[i], name: r.stazioni[i], soglie: [null, null, null], series: [] };
     })
   });
+}
+
+// dato anomalo: dopo il salto il livello resta alto, ma nessun'altra stazione dello stesso fiume
+// (o di tutta la rete, se il fiume ne ha una sola) è salita di 30 cm nelle ultime 6 ore.
+// In una piena vera sale anche a monte o a valle. La stazione anomala non manda avvisi e sul sito è grigia;
+// l'anomalia resta finché il livello non torna vicino a quello di prima del salto, anche se il salto esce dalla serie.
+const rose = s => {
+  const p = s.series, t = p.at(-1)?.[0];
+  if (t == null) return 0;
+  const w = p.filter(x => x[0] >= t - CONFERMA_MS);
+  return Math.max(...w.map(x => x[1])) - w[0][1];
+};
+const allSt = out.fiumi.flatMap(f => f.stazioni.map(s => ({ f, s })));
+for (const { f, s } of allSt) {
+  const cand = s.salto ?? prevStation(s.id)?.anomala, v = s.series.at(-1)?.[1];
+  delete s.salto; delete s.anomala;
+  if (!cand || v == null || v - cand.base <= SALTO_M / 2) continue;
+  const others = (f.stazioni.length > 1 ? f.stazioni : allSt.map(x => x.s)).filter(x => x !== s);
+  if (others.some(x => rose(x) >= CONFERMA_M)) continue;
+  s.anomala = { dal: cand.dal, base: cand.base };
+  console.error(`${f.fiume} ${s.name}: dato anomalo (da ${cand.base} a ${v} m senza conferme), escluso dagli avvisi`);
 }
 
 await writeFile("dati.json", JSON.stringify(out) + "\n");

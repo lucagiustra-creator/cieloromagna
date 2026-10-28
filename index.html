@@ -1675,6 +1675,8 @@ function rvState(s) {
   if (!pts.length) return null;
   const [t, v] = pts.at(-1);
   const past = pts.findLast(p => p[0] <= t - 3 * 36e5) ?? pts[0];
+  // anomala: salto del sensore senza conferme dalle altre stazioni (scripts/dati.mjs), non conta per le soglie
+  if (s.anomala) return { t, v, d: 0, stale: Date.now() - t > 2 * 36e5, lvl: 0, anomala: true };
   const d = v - past[1];
   return { t, v, d, stale: Date.now() - t > 2 * 36e5, lvl: s.soglie.filter(x => x != null && v >= x).length };
 }
@@ -1700,10 +1702,12 @@ function riverCard(f) {
       if (!st) return `<div class="st" style="--lvl:var(--ink-faint)"><i></i><span class="sn">${esc(s.name)}</span><span></span><span class="sv"><small>n.d.</small></span></div>`;
       const L = RV_LEVELS[st.lvl], up = st.d >= .15;
       const s1 = s.soglie[0] != null ? `soglia 1 a ${fmt2(s.soglie[0])} m` : "senza soglie";
-      const dtxt = Math.abs(st.d) < .05 ? "stabile" : `${st.d > 0 ? "+" : "−"}${fmt2(Math.abs(st.d))} in 3 h`;
-      return `<div class="st" style="--lvl:${L.css}" title="${esc(s.name)}: ${fmt2(st.v)} m misurati alle ${when(st.t)} · ${s1}">
-        <i></i><span class="sn">${esc(s.name)}<small>${st.stale ? "dato fermo: misurato alle " + when(st.t) : "misurato alle " + when(st.t) + " · " + s1}</small></span>
-        ${sparkMini(s, st.lvl ? L.css : "#7cc4ff")}
+      const dtxt = st.anomala ? "da verificare" : Math.abs(st.d) < .05 ? "stabile" : `${st.d > 0 ? "+" : "−"}${fmt2(Math.abs(st.d))} in 3 h`;
+      const note = st.anomala ? "dato anomalo del sensore: salto improvviso che le altre stazioni non confermano"
+        : st.stale ? "dato fermo: misurato alle " + when(st.t) : "misurato alle " + when(st.t) + " · " + s1;
+      return `<div class="st" style="--lvl:${st.anomala ? "var(--ink-faint)" : L.css}" title="${esc(s.name)}: ${fmt2(st.v)} m misurati alle ${when(st.t)} · ${s1}">
+        <i></i><span class="sn">${esc(s.name)}<small>${note}</small></span>
+        ${sparkMini(s, st.anomala ? "#9aa5b1" : st.lvl ? L.css : "#7cc4ff")}
         <span class="sv">${fmt2(st.v)} m<small class="${up ? "up" : ""}">${dtxt}</small></span>
       </div>`;
     }).join("")}
@@ -1729,7 +1733,7 @@ function renderMetro() {
         aria-label="${esc(f.fiume)}: ${worst ? "oltre la " + RV_LEVELS[worst].label.toLowerCase() : "sotto le soglie"}${up ? ", in crescita" : ""}"
         style="--x:${((i + .5) / F.length * 100).toFixed(2)}%; --p0:${Math.max(...rows.map(r => r.p)).toFixed(3)}">
       <span class="mname">${esc(RIVER_SHORT[f.fiume] ?? f.fiume)}</span>
-      ${rows.map(({ s, st, p }) => `<span class="mdot${!st || st.stale ? " stale" : ""}${st && st.d >= .15 ? " up" : ""}" style="--p:${p.toFixed(3)}; --lvl:${st ? RV_LEVELS[st.lvl].css : "var(--ink-faint)"}" title="${esc(s.name)}${st ? ": " + fmt2(st.v) + " m alle " + when(st.t) : ": n.d."}"><b>${st ? fmt2(st.v) : ""}</b></span>`).join("")}
+      ${rows.map(({ s, st, p }) => `<span class="mdot${!st || st.stale || st.anomala ? " stale" : ""}${st && st.d >= .15 ? " up" : ""}" style="--p:${p.toFixed(3)}; --lvl:${st && !st.anomala ? RV_LEVELS[st.lvl].css : "var(--ink-faint)"}" title="${esc(s.name)}${st ? ": " + fmt2(st.v) + " m alle " + when(st.t) + (st.anomala ? " (dato anomalo)" : "") : ": n.d."}"><b>${st ? fmt2(st.v) : ""}</b></span>`).join("")}
     </button>`;
   }).join("");
   const m = $("metroMap");

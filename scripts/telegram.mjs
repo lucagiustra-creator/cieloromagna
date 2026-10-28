@@ -129,7 +129,8 @@ function alertsLine() {
 
 function riversLine() {
   if (!dati?.fiumi) return "dato non disponibile";
-  const st = dati.fiumi.flatMap(f => f.stazioni.map(s => ({ f: f.fiume, s, v: s.series.at(-1)?.[1] }))).filter(x => x.v != null);
+  // le stazioni con dato anomalo (scripts/dati.mjs) non contano
+  const st = dati.fiumi.flatMap(f => f.stazioni.map(s => ({ f: f.fiume, s, v: s.series.at(-1)?.[1] }))).filter(x => x.v != null && !x.s.anomala);
   const over = st.map(x => ({ ...x, lvl: x.s.soglie.filter(t => t != null && x.v >= t).length })).filter(x => x.lvl > 0);
   if (!over.length) return DOT[0] + " tutti sotto la soglia 1";
   const worst = Math.max(...over.map(x => x.lvl));
