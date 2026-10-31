@@ -1,15 +1,16 @@
 name: Messaggio Telegram
 run-name: Messaggio Telegram${{ github.event_name == 'workflow_dispatch' && format(' ({0})', inputs.modo) || '' }}
 
-# Messaggio del mattino nel canale Telegram alle 7 italiane. Le schedule di GitHub arrivano in ritardo o saltano,
-# quindi ce ne sono tante nella notte: la prima che parte aspetta le 7 (ora di Roma, legale o solare) e invia,
-# le altre restano in coda e vedono che oggi è già partito. Quelle dopo le 7 sono la riserva, fino a mezzogiorno.
+# Messaggio del mattino nel canale Telegram alle 6 italiane. Lo lancia alle 6 il Worker Cloudflare in sveglia/
+# (workflow_dispatch, modo "mattina"), perché le schedule di GitHub arrivano con ore di ritardo o saltano.
+# Le schedule qui sotto restano come riserva: la prima che parte aspetta le 6 (ora di Roma, legale o solare),
+# poi controlla se oggi il messaggio è già partito (anche dal Worker) e altrimenti invia, fino a mezzogiorno.
 # A mano si può lanciare in modo "prova" o "mattina": parte subito, senza attese né controlli.
 # Il token del bot sta nel secret TELEGRAM_BOT_TOKEN; il canale nella variabile TELEGRAM_CHAT (se manca lo trova lo script).
 on:
   schedule:
-    - cron: "13,43 1-5 * * *"
-    - cron: "17 6-9 * * *"
+    - cron: "13,43 1-4 * * *"
+    - cron: "17 5-9 * * *"
   workflow_dispatch:
     inputs:
       modo:
@@ -29,15 +30,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
-      - name: Aspetta le 7
+      - name: Aspetta le 6
         id: ora
         if: github.event_name == 'schedule'
         run: |
           adesso=$(date +%s)
-          sette=$(TZ=Europe/Rome date -d "today 07:00" +%s)
+          sei=$(TZ=Europe/Rome date -d "today 06:00" +%s)
           mezzogiorno=$(TZ=Europe/Rome date -d "today 12:00" +%s)
           if [ "$adesso" -ge "$mezzogiorno" ]; then echo "è passato mezzogiorno, non invio"; echo "salta=si" >> "$GITHUB_OUTPUT"; exit 0; fi
-          if [ "$adesso" -lt "$sette" ]; then echo "aspetto $(( (sette - adesso) / 60 )) minuti"; sleep $(( sette - adesso )); fi
+          if [ "$adesso" -lt "$sei" ]; then echo "aspetto $(( (sei - adesso) / 60 )) minuti"; sleep $(( sei - adesso )); fi
       - name: Già inviato oggi?
         id: gia
         if: github.event_name == 'schedule' && steps.ora.outputs.salta != 'si'

@@ -14,7 +14,7 @@ Progetto personale e non commerciale. **Non è un servizio ufficiale**: per alle
   (allerte di oggi e domani per le zone A1, A2, B1, B2, C2, D1 e livelli di 43 idrometri)
   e ripubblica il sito su GitHub Pages. Se ARPAE non risponde riusa l'ultimo `dati.json` pubblicato;
   se i livelli restano fermi più di due ore la Action fallisce e GitHub manda una mail.
-- `scripts/telegram.mjs` (workflow `telegram.yml`) pubblica alle 7 nel canale Telegram @cieloromagna pioverà oggi e domani,
+- `scripts/telegram.mjs` (workflow `telegram.yml`) pubblica alle 6 (lanciato dal Worker Cloudflare in `sveglia/`) nel canale Telegram @cieloromagna pioverà oggi e domani,
   allerte e fiumi; `scripts/avvisi.mjs` (nel workflow ogni 15 minuti) avvisa quando compare o sale un'allerta o un fiume
   supera una soglia, una volta sola grazie alla memoria in `dati.json`. Token nel secret `TELEGRAM_BOT_TOKEN`.
 - `scripts/pagine.mjs` genera da `index.html` la home, una pagina per località (`/faenza/`) e una per fiume
