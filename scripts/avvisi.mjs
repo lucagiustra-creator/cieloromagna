@@ -113,7 +113,7 @@ if (!msgs.length) { console.log("nessuna novità"); process.exit(0); }
 const ora = +new Intl.DateTimeFormat("it-IT", { hour: "numeric", hourCycle: "h23", timeZone: "Europe/Rome" }).format(new Date());
 const notte = ora >= NOTTE[0] || ora < NOTTE[1];
 const suona = gravita >= (notte ? 3 : 2);
-const text = msgs.join("\n\n") + "\n\n<i>Non è un servizio ufficiale: per le allerte fa fede Allerta Meteo Emilia-Romagna.</i>";
+const text = msgs.join("\n\n");
 if (DRY || !TOKEN || !CHAT) { console.log(`--- (non inviato, ${suona ? "con suono" : "muto"})\n` + text); process.exit(0); }
 const r = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
   method: "POST", headers: { "content-type": "application/json" },
