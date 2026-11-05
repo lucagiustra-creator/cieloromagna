@@ -1,0 +1,28 @@
+name: Messaggio libero Telegram
+
+# Invia nel canale un testo scritto a mano (HTML di Telegram; "\n" = a capo). Solo lancio manuale.
+on:
+  workflow_dispatch:
+    inputs:
+      testo:
+        description: "testo del messaggio (HTML di Telegram)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  invia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Invia
+        run: node scripts/messaggio.mjs
+        env:
+          TESTO: ${{ inputs.testo }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
