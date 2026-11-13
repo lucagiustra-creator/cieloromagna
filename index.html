@@ -21,7 +21,7 @@
 <link rel="icon" href="/assets/logo/icon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/logo/icon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
-<link rel="preload" href="/assets/fonts/fraunces-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/exo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/leaflet/leaflet.css">
 <style>
 /* Meteo della Romagna nello stile dell'app Meteo dell'iPhone: il cielo della località scelta fa da sfondo a tutta la pagina
@@ -30,10 +30,13 @@
    tre schede (Previsioni, Allerte, Fiumi), con la barra in basso sul telefono.
    Colori: testo bianco sul vetro; i colori caldi solo per il sole e per la scala del rischio verde-giallo-arancione-rosso
    di allerte e fiumi; pioggia in azzurro; le barre dei 7 giorni colorate dalla temperatura come sull'iPhone.
-   Identità: logo con sole e fiumi (assets/logo), Fraunces per il nome del sito e Inter per il titolo (in assets/fonts, licenza OFL);
+   Identità: logo "Neon" con crinale, fiume con sensore e mare (assets/logo), Exo 2 per il nome del sito, Fraunces per "Mare Adriatico"
+   e Inter per il titolo (in assets/fonts, licenza OFL);
    per il resto il carattere di sistema, che sull'iPhone è lo stesso dell'app Meteo. */
 @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap; src: url("/assets/fonts/fraunces-latin-700-normal.woff2") format("woff2"); }
 @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 600; font-display: swap; src: url("/assets/fonts/fraunces-latin-600-italic.woff2") format("woff2"); }
+@font-face { font-family: "Exo 2"; font-style: normal; font-weight: 400; font-display: swap; src: url("/assets/fonts/exo-2-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Exo 2"; font-style: normal; font-weight: 800; font-display: swap; src: url("/assets/fonts/exo-2-latin-800-normal.woff2") format("woff2"); }
 @font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("/assets/fonts/inter-latin-600-normal.woff2") format("woff2"); }
 :root {
   color-scheme: dark;
@@ -78,7 +81,8 @@ button, select { font: inherit; color: inherit; }
 .nav .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
 .brand svg { width: 32px; height: 32px; }
-.brand b { display: block; font-family: var(--display); font-size: 1.08rem; font-weight: 700; line-height: 1.05; letter-spacing: -.01em; }
+.brand b { display: block; font-family: "Exo 2", var(--font); font-size: 1.06rem; font-weight: 400; line-height: 1.05; letter-spacing: .05em; text-transform: uppercase; }
+.brand b span { font-weight: 800; }
 .brand small { display: block; font-size: .7rem; color: var(--ink-faint); }
 @media (max-width: 420px) { .brand small { display: none; } }
 .install { background: var(--brand); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: .8rem; font-weight: 600; color: #fff; cursor: pointer; }
@@ -520,8 +524,8 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
 <nav class="nav">
   <div class="container">
     <a class="brand" href="/">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="crNav"><circle cx="32" cy="32" r="31"/></clipPath></defs><g clip-path="url(#crNav)"><rect width="64" height="64" fill="#a9d6f2"/><circle cx="41" cy="23" r="10.5" fill="#f2a33a"/><path d="M13.5 33h16a5 5 0 0 0 0-10 7.5 7.5 0 0 0-14.3-1.6A5.3 5.3 0 0 0 13.5 33z" fill="#fff"/><path d="M0 40Q16 34 32 40T64 40V64H0Z" fill="#4a97d4"/><path d="M0 47.5Q16 41.5 32 47.5T64 47.5V64H0Z" fill="#2c74b6"/><path d="M0 55Q16 49 32 55T64 55V64H0Z" fill="#1d5492"/><circle cx="22" cy="48.5" r="2.7" fill="#b4532a" stroke="#fff" stroke-width="1.4"/></g></svg>
-      <span><b>Cielo Romagna</b><small>dalla costa all'Appennino</small></span>
+      <svg viewBox="0 0 128 128" aria-hidden="true"><defs><linearGradient id="crnbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B1F"/><stop offset="1" stop-color="#0B2547"/></linearGradient><linearGradient id="crnsun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC94A"/><stop offset="1" stop-color="#FF3D8B"/></linearGradient><linearGradient id="crnln" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#00E5FF"/><stop offset="1" stop-color="#8B5CFF"/></linearGradient><mask id="crncut"><rect width="128" height="128" fill="#fff"/><rect x="0" y="45" width="128" height="2.2" fill="#000"/><rect x="0" y="51" width="128" height="3" fill="#000"/><rect x="0" y="57.5" width="128" height="3.8" fill="#000"/></mask><filter id="crnglow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="crnclip"><rect width="128" height="128" rx="30"/></clipPath></defs><g clip-path="url(#crnclip)"><rect width="128" height="128" fill="url(#crnbg)"/><g fill="#9FC8FF" opacity=".55"><circle cx="20" cy="22" r="1"/><circle cx="38" cy="14" r=".8"/><circle cx="54" cy="30" r=".7"/><circle cx="14" cy="44" r=".7"/></g><circle cx="84" cy="46" r="22" fill="url(#crnsun)" mask="url(#crncut)"/><path d="M-2 84 L22 62 L36 72 L56 48 L74 66 L92 56 L130 84 V130 H-2Z" fill="#081A35"/><path d="M-2 84 L22 62 L36 72 L56 48 L74 66 L92 56 L130 84" fill="none" stroke="url(#crnln)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" filter="url(#crnglow)"/><path d="M36 72 C40 80 30 84 38 90 S60 96 66 104" fill="none" stroke="#00E5FF" stroke-width="3" stroke-linecap="round" opacity=".9"/><g fill="none" stroke-linecap="round"><path d="M-2 104 Q16 98 32 104 T64 104 T96 104 T130 104" stroke="#00E5FF" stroke-width="3.2" opacity=".95"/><path d="M-2 113 Q16 107 32 113 T64 113 T96 113 T130 113" stroke="#3E8BFF" stroke-width="2.6" opacity=".8"/><path d="M-2 121 Q16 115 32 121 T64 121 T96 121 T130 121" stroke="#8B5CFF" stroke-width="2.2" opacity=".7"/></g><g fill="none" stroke="#00E5FF"><circle cx="38" cy="90" r="9" stroke-width="1.6" opacity=".55"/><circle cx="38" cy="90" r="15" stroke-width="1.2" opacity=".28"/></g><circle cx="38" cy="90" r="4.6" fill="#00E5FF" filter="url(#crnglow)"/><circle cx="38" cy="90" r="1.8" fill="#fff"/></g></svg>
+      <span><b>Cielo<span>Romagna</span></b><small>dalla costa all'Appennino</small></span>
     </a>
     <button class="install" type="button" id="install" hidden>📲 Installa</button>
   </div>
@@ -687,7 +691,7 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
     Previsioni: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) con i modelli ICON-2I di ItaliaMeteo-ARPAE, ICON-D2 di DWD, AROME di Météo-France ed ECMWF ·
     Qualità dell'aria: Open-Meteo con dati del Copernicus Atmosphere Monitoring Service (CAMS) ·
     Medie 1991–2020: Open-Meteo, rianalisi ERA5 di Copernicus/ECMWF (CC BY 4.0) ·
-    Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · Mappa: © Esri, © OpenStreetMap · Caratteri Fraunces e Inter (SIL Open Font License).</p>
+    Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · Mappa: © Esri, © OpenStreetMap · Caratteri Exo 2, Fraunces e Inter (SIL Open Font License).</p>
     <p>I contenuti rielaborati di questo sito sono distribuiti con la stessa licenza CC BY-NC-SA 4.0. Nessun cookie e nessuna profilazione: le visite sono contate in forma anonima e aggregata con Cloudflare Web Analytics. La località preferita resta solo sul tuo dispositivo, e la pagina chiede previsioni, radar e mappe direttamente a Open-Meteo, RainViewer ed Esri.</p>
   </footer>
 </main>

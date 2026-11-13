@@ -1,3 +1,4 @@
+Exo 2 (exo-2-latin-400-normal.woff2, exo-2-latin-800-normal.woff2): Copyright 2013 The Exo 2 Project Authors (https://github.com/NDISCOVER/Exo-2.0)
 Inter (inter-latin-600-normal.woff2): Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
 Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces) Fraunces-Italic[SOFT,WONK,opsz,wght].ttf: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)
 
