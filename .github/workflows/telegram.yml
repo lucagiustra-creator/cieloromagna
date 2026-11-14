@@ -16,6 +16,9 @@ on:
       modo:
         description: "prova o mattina"
         default: prova
+      dry:
+        description: "si = stampa il messaggio senza inviarlo"
+        default: "no"
 
 permissions:
   contents: read
@@ -58,9 +61,11 @@ jobs:
         if: steps.ora.outputs.salta != 'si' && steps.gia.outputs.inviato != 'si'
         with:
           node-version: 24
-      - name: Invia (${{ github.event.inputs.modo || 'mattina' }})
+      - name: Invia (${{ github.event.inputs.modo || 'mattina' }})${{ github.event.inputs.dry == 'si' && ' a vuoto' || '' }}
         if: steps.ora.outputs.salta != 'si' && steps.gia.outputs.inviato != 'si'
         run: node scripts/telegram.mjs "${{ github.event.inputs.modo || 'mattina' }}"
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
+          OM_CHIAVE: ${{ secrets.OM_CHIAVE }}
+          DRY: ${{ github.event.inputs.dry == 'si' && '1' || '' }}

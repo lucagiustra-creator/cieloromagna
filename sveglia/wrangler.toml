@@ -2,6 +2,7 @@ name = "cieloromagna-sveglia"
 main = "worker.js"
 compatibility_date = "2026-10-01"
 workers_dev = false
+routes = [{ pattern = "cieloromagna.it/om/*", zone_name = "cieloromagna.it" }]
 
 [triggers]
 crons = ["0 4 * * *", "0 5 * * *"]

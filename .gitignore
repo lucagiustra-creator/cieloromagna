@@ -1,3 +1,4 @@
 # generato dalla Action a ogni pubblicazione
 dati.json
 _site/
+.wrangler/

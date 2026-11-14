@@ -39,11 +39,34 @@ const RANK = { green: 0, yellow: 1, orange: 2, red: 3 }, COLOR = ["verde", "gial
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const listIt = a => a.length <= 1 ? (a[0] ?? "") : a.slice(0, -1).join(", ") + " e " + a.at(-1);
 
-const om = await (await fetch("https://api.open-meteo.com/v1/forecast?" + new URLSearchParams({
+// Open-Meteo a volte non risponde ai runner GitHub (14/11: timeout di connessione per ore, da altre reti andava).
+// Ripiego: lo stesso indirizzo passando dal Worker Cloudflare in sveglia/ (cieloromagna.it/om/..., chiave OM_CHIAVE).
+// A ogni giro prova diretto e poi Worker; fino a 5 giri a 60 secondi l'uno dall'altro.
+async function openMeteo(query) {
+  const vie = [["diretto", "https://api.open-meteo.com/v1/forecast?" + query, {}]];
+  if (process.env.OM_CHIAVE) vie.push(["Worker", "https://cieloromagna.it/om/v1/forecast?" + query, { "x-chiave": process.env.OM_CHIAVE }]);
+  for (let giro = 1; ; giro++) {
+    for (const [nome, url, headers] of vie) {
+      try {
+        const r = await fetch(url, { headers, signal: AbortSignal.timeout(20_000) });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (nome !== "diretto" || giro > 1) console.log(`Open-Meteo: ok (${nome}, giro ${giro})`);
+        return j;
+      } catch (e) {
+        console.log(`Open-Meteo: ${nome} fallito al giro ${giro} (${e.cause?.code ?? e.name ?? e.message})`);
+      }
+    }
+    if (giro >= 5) throw new Error("Open-Meteo irraggiungibile, sia diretto sia dal Worker");
+    await new Promise(res => setTimeout(res, 60_000));
+  }
+}
+
+const om = await openMeteo(new URLSearchParams({
   latitude: PLACES.map(p => p.lat).join(","), longitude: PLACES.map(p => p.lon).join(","), timezone: "Europe/Rome", forecast_days: 2,
   hourly: "precipitation_probability,precipitation,weather_code",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_gusts_10m_max,sunrise,sunset"
-}))).json();
+}));
 const OM = Array.isArray(om) ? om : [om];
 const dati = await (await fetch(DATI_URL + "?t=" + Date.now())).json().catch(() => null);
 
