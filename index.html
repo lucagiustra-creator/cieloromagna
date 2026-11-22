@@ -239,7 +239,7 @@ h1 { margin: 0; font-family: "Inter", var(--font); font-weight: 600; font-size: 
 .official b { color: var(--ink); }
 
 /* ---------- Radar ---------- */
-.radar { position: relative; overflow: hidden; margin-top: 12px; border-radius: 12px; background: #1b1f26; height: 460px; }
+.radar { position: relative; overflow: hidden; margin-top: 12px; border-radius: 12px; background: #1b1f26; height: 540px; }
 @media (max-width: 760px) { .radar { height: clamp(380px, 100vw, 520px); } }
 #map { position: absolute; inset: 0; }
 .leaflet-container { background: #1b1f26; font: inherit; }
@@ -322,17 +322,6 @@ h1 { margin: 0; font-family: "Inter", var(--font); font-weight: 600; font-size: 
 .tile .k { font-size: .68rem; color: var(--ink-faint); font-weight: 500; }
 .tile .v { font-size: 1.05rem; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
 .tile .s { font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
-
-/* ---------- Località: card con il proprio cielo, come l'elenco delle città dell'app ---------- */
-.places { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 900px) { .places { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; } .place { flex: 0 0 168px; scroll-snap-align: start; } }
-.place { position: relative; text-align: left; background: linear-gradient(180deg, var(--p0, #2f7fd0), var(--p1, #7bb6ea)); border: 0; border-radius: 16px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; cursor: pointer; min-width: 0; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.18); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
-.place[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #fff; }
-.place .pn { font-size: 1rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
-.place .pc { grid-column: 1; font-size: .74rem; color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.place .pt { grid-column: 2; grid-row: 1 / span 2; font-size: 2.1rem; font-weight: 300; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.place .pd { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 6px; margin-top: 16px; font-size: .74rem; font-weight: 500; font-variant-numeric: tabular-nums; }
-.place .pp { color: #cfeaff; }
 
 /* ---------- Fiumi: schema a linee della metro, dall'Appennino (in alto) al mare (in basso) ---------- */
 .rv-sum { display: flex; align-items: center; gap: 12px 18px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -584,19 +573,7 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
 
   <!-- ===================== Scheda Previsioni ===================== -->
   <section class="tab" id="previsioni">
-    <section class="block card" id="ore">
-      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Le prossime 24 ore</h2>
-      <p class="lead" id="hoursLead">Temperatura, probabilità di pioggia e raffiche di vento ora per ora.</p>
-      <div class="hchart-wrap" id="hours"><span class="loading">Carico…</span></div>
-      <div class="hleg"><span><i class="lg-line"></i>temperatura</span><span><i class="lg-bar"></i>probabilità di pioggia (più scura se forte)</span><span><i class="lg-night"></i>notte</span><span>in basso: raffiche in km/h</span></div>
-    </section>
-
-    <section class="block card half" id="settimana">
-      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Prossimi 7 giorni</h2>
-      <div class="days" id="days"><span class="loading">Carico…</span></div>
-    </section>
-
-    <section class="block card half" id="radar">
+    <section class="block card" id="radar">
       <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Radar · il cielo adesso</h2>
       <p class="lead plain">Ultime due ore, un'immagine ogni 10 minuti. Tocca un numero sulla mappa per cambiare località.</p>
       <div class="radar">
@@ -614,17 +591,21 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
       </div>
     </section>
 
+    <section class="block card" id="ore">
+      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Le prossime 24 ore</h2>
+      <p class="lead" id="hoursLead">Temperatura, probabilità di pioggia e raffiche di vento ora per ora.</p>
+      <div class="hchart-wrap" id="hours"><span class="loading">Carico…</span></div>
+      <div class="hleg"><span><i class="lg-line"></i>temperatura</span><span><i class="lg-bar"></i>probabilità di pioggia (più scura se forte)</span><span><i class="lg-night"></i>notte</span><span>in basso: raffiche in km/h</span></div>
+    </section>
+
+    <section class="block card" id="settimana">
+      <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Prossimi 7 giorni</h2>
+      <div class="days" id="days"><span class="loading">Carico…</span></div>
+    </section>
+
     <section class="block" id="adesso">
       <div class="now-top outside"><h2 class="lbl"><i class="dot" style="color:var(--live)"></i>Adesso a <span id="nowName">…</span></h2></div>
       <div class="widgets" id="widgets"><span class="loading">Carico…</span></div>
-    </section>
-
-    <section class="block" id="localita">
-      <div class="outside">
-        <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Oggi in Romagna</h2>
-        <p class="lead plain">Tocca una località per vederla in alto.</p>
-      </div>
-      <div id="places" style="margin-top:12px"><span class="loading">Carico…</span></div>
     </section>
 
     <details class="more" id="esperti">
@@ -911,7 +892,7 @@ function select(id) {
   u.pathname = `/${p.id}/`;
   history.replaceState(null, "", u);
   radarRainHere = false; hourly = null; models = null; air = null;
-  renderNow(); renderSummary(); renderPlaces(); renderDays(); updateMarkers();
+  renderNow(); renderSummary(); renderDays(); updateMarkers();
   if (!riverPicked) renderRivers();
   loadDetail();
   describeRainForPlace();
@@ -1000,7 +981,7 @@ function renderFav() {
 $("fav").addEventListener("click", () => {
   fav = fav === sel ? null : sel;
   store.set("cr-preferita", fav?.id ?? null);
-  renderFav(); renderPlaces();
+  renderFav();
 });
 document.addEventListener("click", e => { if (e.target.id === "favBack" && fav) select(fav.id); });
 
@@ -1355,28 +1336,7 @@ function widgets(c, D, i) {
   return airw + feelw + avgw + windw + sunw + uvw + rainw + humw + visw + cloudw + moonw + pressw + dayw;
 }
 
-/* ---------- Località: ogni card ha il cielo della sua località, come l'elenco delle città dell'app ---------- */
-function renderPlaces() {
-  if (!overview) return;
-  $("places").innerHTML = `<div class="places">${
-    PLACES.map(p => {
-      const d = ov(p), c = d.current, D = d.daily, i = D.time.indexOf(c.time.slice(0, 10)), s = skyOf(d);
-      const prob = D.precipitation_probability_max[i] ?? 0;
-      return `<button type="button" class="place" data-place="${p.id}" aria-pressed="${p === sel}" style="--p0:${s.g[0]};--p1:${s.g[2]}">
-        <span class="pn">${p === fav ? "★ " : ""}${esc(p.name)}</span>
-        <span class="pt">${rnd(c.temperature_2m)}°</span>
-        <span class="pc">${esc(WMO[c.weather_code] ?? "")}</span>
-        <span class="pd"><span class="pp">${prob >= 10 ? DROP + prob + "%" : ""}</span><span>Max ${rnd(D.temperature_2m_max[i])}° Min ${rnd(D.temperature_2m_min[i])}°</span></span>
-      </button>`;
-    }).join("")}</div>`;
-}
 document.addEventListener("click", e => {
-  const b = e.target.closest("[data-place]");
-  if (b) {
-    select(b.dataset.place);
-    // le card delle località stanno in basso: si torna su alla testata
-    scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
-  }
   const r = e.target.closest("[data-river]");
   if (r) { riverSel = r.dataset.river; riverPicked = true; renderRivers(); }
 });
@@ -1906,7 +1866,7 @@ async function load() {
     overview = Array.isArray(o) ? o : [o];
     loadedAt = Date.now();
     $("updated").textContent = "Previsioni aggiornate alle " + clock(new Date(loadedAt));
-    renderNow(); renderSummary(); renderPlaces(); renderDays(); updateMarkers(); renderStampPrev();
+    renderNow(); renderSummary(); renderDays(); updateMarkers(); renderStampPrev();
   } catch (e) {
     $("cNow").textContent = "Previsioni non raggiungibili";
     $("updated").textContent = `Errore (${e.message}): controlla la connessione e premi Aggiorna`;
