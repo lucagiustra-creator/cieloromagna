@@ -44,7 +44,7 @@ const listIt = a => a.length <= 1 ? (a[0] ?? "") : a.slice(0, -1).join(", ") + "
 function links(current) {
   const a = (href, text) => `<a href="${href}"${href === current ? ' aria-current="page"' : ""}>${esc(text)}</a>`;
   return `<nav aria-label="Meteo per località"><b>Meteo:</b>${PLACES.map(p => a(`/${p.id}/`, p.name)).join("")}</nav>
-    <nav aria-label="Livelli dei fiumi"><b>Fiumi:</b>${RIVERS.map(r => a(`/fiumi/${slug(r.name)}/`, r.name)).join("")}</nav>`;
+    <nav aria-label="Livelli dei fiumi"><b>Fiumi:</b>${a("/fiumi/", "Tutti")}${RIVERS.map(r => a(`/fiumi/${slug(r.name)}/`, r.name)).join("")}</nav>`;
 }
 
 function page({ path, title, description, h1, intro, data }) {
@@ -80,6 +80,16 @@ for (const p of PLACES) {
     data: { place: p.id }
   });
 }
+// tutti i fiumi insieme, con la griglia "I miei" in cima
+const nSt = RIVERS.reduce((n, r) => n + r.stations.length, 0);
+pages.push({
+  path: "/fiumi/",
+  title: "Livello dei fiumi in Romagna oggi, in tempo reale · Cielo Romagna",
+  description: `Livelli dei ${RIVERS.length} fiumi della Romagna in tempo reale${nSt ? ` da ${nSt} idrometri ARPAE` : ""}: chi sale e chi scende, soglie di allerta, e i tuoi fiumi preferiti sempre in vista.`,
+  h1: "Livello dei fiumi in Romagna oggi, in tempo reale",
+  intro: `Livelli idrometrici di tutti i fiumi della Romagna, dal Santerno al Conca (${RIVERS.map(r => r.name).join(", ")})${nSt ? `, da ${nSt} stazioni ARPAE` : ""}, ripresi ogni 15 minuti da Allerta Meteo Emilia-Romagna: livello attuale, se sale o scende, andamento delle ultime 48 ore e soglie. Con la stella si scelgono i propri fiumi, che restano salvati sul dispositivo. Le soglie idrometriche non sono un'allerta: per piene e allagamenti fa fede il bollettino ufficiale.`,
+  data: { tab: "fiumi", all: true }
+});
 for (const r of RIVERS) {
   const st = r.stations.map(cleanName);
   const from = st.length > 1 ? `da ${st.length} stazioni ARPAE (${listIt(st)})` : st.length ? `dalla stazione ARPAE di ${st[0]}` : "dagli idrometri ARPAE";
@@ -103,7 +113,7 @@ for (const p of pages) {
 const today = new Date().toISOString().slice(0, 10);
 await writeFile(`${OUT}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(p => `  <url><loc>${SITE}${p.path}</loc><lastmod>${today}</lastmod><changefreq>hourly</changefreq><priority>${p.path === "/" ? "1.0" : p.path.startsWith("/fiumi/") ? "0.7" : "0.8"}</priority></url>`).join("\n")}
+${pages.map(p => `  <url><loc>${SITE}${p.path}</loc><lastmod>${today}</lastmod><changefreq>hourly</changefreq><priority>${p.path === "/" ? "1.0" : p.path.startsWith("/fiumi/") && p.path !== "/fiumi/" ? "0.7" : "0.8"}</priority></url>`).join("\n")}
 </urlset>
 `);
 await writeFile(`${OUT}/robots.txt`, `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);

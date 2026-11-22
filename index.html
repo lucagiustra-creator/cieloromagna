@@ -383,8 +383,24 @@ details.more { margin-top: 14px; }
 details.more > summary { cursor: pointer; color: #fff; font-size: .92rem; font-weight: 600; padding: 12px 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--glass-line); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
 details.more[open] > summary { margin-bottom: 12px; }
 details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
+/* Tutti i fiumi: griglia con "I miei" scelti da chi guarda (salvati nel browser) */
+.rv-all { margin-top: 18px; }
+.rv-all-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.rv-all-head h3 { margin: 0; font-size: 1rem; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
+.rv-all-head .seg button span { font-weight: 400; opacity: .8; }
+.rv-hint { margin: 12px 4px 0; font-size: .84rem; color: var(--ink-soft); text-shadow: 0 1px 10px rgba(0,0,0,.18); }
+.rv-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.rv-pick button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; font: inherit; font-size: .8rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; background: rgba(255,255,255,.08); border: 1px solid var(--glass-line); }
+.rv-pick button::before { content: "☆"; }
+.rv-pick button[aria-pressed="true"] { color: #fff; background: rgba(255,255,255,.22); border-color: transparent; }
+.rv-pick button[aria-pressed="true"]::before { content: "★"; color: var(--warn); }
+.rv-empty { grid-column: 1 / -1; margin: 0; padding: 18px 16px; text-align: center; color: var(--ink-soft); font-size: .88rem; }
 .rcard { padding: 14px 16px; }
 .rcard header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.rcard header > div { flex: 1; min-width: 0; }
+.rv-star { flex: none; width: 32px; height: 32px; margin: -6px 0 -6px -8px; border: 0; border-radius: 50%; background: none; font-size: 1.15rem; line-height: 1; color: var(--ink-faint); cursor: pointer; }
+.rv-star:hover { background: rgba(255,255,255,.1); }
+.rv-star[aria-pressed="true"] { color: var(--warn); }
 .rcard header b { font-size: 1rem; }
 .rcard header small { display: block; color: var(--ink-faint); font-size: .72rem; font-weight: 500; }
 .st { display: grid; grid-template-columns: 10px minmax(0, 1fr) 72px auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: .84rem; }
@@ -712,10 +728,15 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
         <a class="btn" href="https://allertameteo.regione.emilia-romagna.it/livello-idrometrico" target="_blank" rel="noopener">Livelli idrometrici ARPAE ↗</a>
       </div>
     </div>
-    <details class="more">
-      <summary>Tutti i fiumi, stazione per stazione</summary>
+    <div class="rv-all" id="rvAll">
+      <div class="rv-all-head">
+        <h3>Tutti i fiumi, stazione per stazione</h3>
+        <div class="seg" role="group" aria-label="Fiumi da vedere"><button type="button" data-rvmode="tutti" aria-pressed="true">Tutti</button><button type="button" data-rvmode="miei" aria-pressed="false">★ I miei<span id="rvMineN"></span></button></div>
+      </div>
+      <p class="rv-hint" id="rvHint" hidden></p>
+      <div class="rv-pick" id="rvPick" role="group" aria-label="Scegli i fiumi che segui" hidden></div>
       <div class="rivers" id="rivers"></div>
-    </details>
+    </div>
     <p class="stamp" id="stampRiv">&nbsp;</p>
   </section>
 
@@ -1736,8 +1757,9 @@ function riverCard(f) {
   const rows = f.stazioni.map(s => ({ s, st: rvState(s) }));
   const worst = Math.max(0, ...rows.map(r => r.st?.lvl ?? 0));
   const ends = f.stazioni.length > 1 ? `<small>da ${esc(f.stazioni[0].name)} a ${esc(f.stazioni.at(-1).name)}</small>` : "";
+  const on = rvMine.includes(f.fiume);
   return `<div class="card rcard">
-    <header><div><b>${esc(f.fiume)}</b>${ends}</div><span class="rv-badge${worst ? "" : " ok"}" style="--lvl:${RV_LEVELS[worst].css}"><i></i>${worst ? "Oltre la " + RV_LEVELS[worst].label.toLowerCase() : "Sotto le soglie"}</span></header>
+    <header><button type="button" class="rv-star" data-star="${esc(f.fiume)}" aria-pressed="${on}" aria-label="${on ? "Togli dai miei fiumi" : "Aggiungi ai miei fiumi"}: ${esc(f.fiume)}" title="${on ? "Togli dai miei fiumi" : "Aggiungi ai miei fiumi"}">${on ? "★" : "☆"}</button><div><b>${esc(f.fiume)}</b>${ends}</div><span class="rv-badge${worst ? "" : " ok"}" style="--lvl:${RV_LEVELS[worst].css}"><i></i>${worst ? "Oltre la " + RV_LEVELS[worst].label.toLowerCase() : "Sotto le soglie"}</span></header>
     ${rows.map(({ s, st }) => {
       if (!st) return `<div class="st" style="--lvl:var(--ink-faint)"><i></i><span class="sn">${esc(s.name)}</span><span></span><span class="sv"><small>n.d.</small></span></div>`;
       const L = RV_LEVELS[st.lvl], up = st.d >= .15;
@@ -1800,7 +1822,7 @@ function renderRivers() {
   renderMetro();
   const f = dati.fiumi.find(x => x.fiume === riverSel) ?? dati.fiumi[0];
   $("rvDetail").innerHTML = riverCard(f);
-  $("rivers").innerHTML = dati.fiumi.map(riverCard).join("");
+  renderAllRivers();
 
   let sum;
   if (over.length) {
@@ -1816,6 +1838,35 @@ function renderRivers() {
   // orari: misura (stazioni), acquisizione (Action), pagina (browser)
   $("stampRiv").innerHTML = `Ultima misura alle <b>${when(newest)}</b>${stale ? ` (${stale} ${stale === 1 ? "stazione ferma" : "stazioni ferme"} da più di 2 ore)` : ""} · acquisite dal sito ARPAE alle <b>${when(dati.scaricato)}</b> · pagina aggiornata alle <b>${clock(new Date(datiAt))}</b>`;
 }
+
+/* ---------- Tutti i fiumi: griglia completa o solo "I miei", scelti da chi guarda e salvati nel suo browser ---------- */
+let rvMine = (() => { try { const a = JSON.parse(store.get("cr-fiumi")); return Array.isArray(a) ? a : []; } catch { return []; } })();
+let rvMode = store.get("cr-fiumi-vista") === "miei" ? "miei" : store.get("cr-fiumi-vista") === "tutti" ? "tutti" : rvMine.length ? "miei" : "tutti";
+
+function renderAllRivers() {
+  const F = dati.fiumi, mine = F.filter(f => rvMine.includes(f.fiume)), miei = rvMode === "miei";
+  document.querySelectorAll("[data-rvmode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.rvmode === rvMode));
+  $("rvMineN").textContent = mine.length ? ` · ${mine.length}` : "";
+  $("rvPick").hidden = $("rvHint").hidden = !miei;
+  $("rvHint").textContent = mine.length ? "Tocca un fiume per aggiungerlo o toglierlo. La scelta resta salvata su questo telefono o computer."
+    : "Scegli i fiumi che segui: restano salvati su questo telefono o computer e la prossima volta trovi solo quelli.";
+  $("rvPick").innerHTML = F.map(f => `<button type="button" data-star="${esc(f.fiume)}" aria-pressed="${rvMine.includes(f.fiume)}">${esc(f.fiume)}</button>`).join("");
+  $("rivers").innerHTML = miei && !mine.length ? `<p class="card rv-empty">Nessun fiume scelto: tocca i nomi qui sopra, o la stella ☆ accanto a un fiume.</p>`
+    : (miei ? mine : F).map(riverCard).join("");
+}
+
+document.addEventListener("click", e => {
+  const m = e.target.closest("[data-rvmode]"), s = e.target.closest("[data-star]");
+  if (m) { rvMode = m.dataset.rvmode; store.set("cr-fiumi-vista", rvMode); }
+  else if (s) {
+    const n = s.dataset.star;
+    rvMine = rvMine.includes(n) ? rvMine.filter(x => x !== n) : [...rvMine, n];
+    store.set("cr-fiumi", rvMine.length ? JSON.stringify(rvMine) : null);
+  } else return;
+  if (dati?.fiumi) renderRivers();
+});
+// sulla pagina /fiumi/ la griglia viene subito sotto il riepilogo, prima della mappa
+if (PAGE.all) $("rvSum").after($("rvAll"));
 
 /* ---------- Fiumi adesso, in cima alle previsioni: il fiume della località e i 15 fiumi in una striscia ----------
    Modalità piena (si accende da sola): una stazione oltre soglia, oppure allerta piene arancione o rossa oggi in Romagna.
@@ -1898,7 +1949,7 @@ function renderRiverHome() {
   box.style.setProperty("--lvl", over.length ? RV_LEVELS[worst].css : idr >= 2 ? ALERT[idr === 3 ? "red" : "orange"].css : "transparent");
   box.innerHTML = `
     <div class="rh-head"><h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 13q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 18q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/></svg>Fiumi adesso</h2>
-      ${piena ? `<span class="rv-badge" style="--lvl:${over.length ? RV_LEVELS[worst].css : ALERT[idr === 3 ? "red" : "orange"].css}"><i></i>${badge}</span>` : `<a href="#fiumi">Tutti i fiumi ›</a>`}</div>
+      ${piena ? `<span class="rv-badge" style="--lvl:${over.length ? RV_LEVELS[worst].css : ALERT[idr === 3 ? "red" : "orange"].css}"><i></i>${badge}</span>` : `<a href="#rvAll">Tutti i fiumi ›</a>`}</div>
     <a class="rh-mine" href="#fiumi" data-river="${esc(mine.f)}" style="--lvl:${L.css}">
       <span class="rh-name"><b>${esc(mine.f)}</b> a ${esc(s.name)}</span>
       <span class="rh-v">${st.anomala ? "—" : fmt2(st.v)}<small>m</small></span>
@@ -1916,7 +1967,7 @@ function renderRiverHome() {
       const label = `${f.fiume}: ${!sts.length ? "nessun dato" : w ? "oltre la soglia " + w : "sotto le soglie"}${ar.up ? ", in crescita" : ""}`;
       return `<a href="#fiumi" data-river="${esc(f.fiume)}" class="${w ? "hot" : ""}" style="--lvl:${RV_LEVELS[w].css}" title="${esc(label)}" aria-label="${esc(label)}"><i class="${sts.length ? "" : "na"}"></i>${esc(RIVER_SHORT[f.fiume] ?? f.fiume)}${ar.a ? `<b class="${ar.up ? "up" : ""}">${ar.a}</b>` : ""}</a>`;
     }).join("")}</nav>
-    <p class="rh-foot">Idrometri ARPAE, ultima misura alle ${when(newest)}${piena ? ` · <a href="#fiumi">tutti i fiumi ›</a>` : ""} · per decidere cosa fare fa fede <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo ER ↗</a></p>`;
+    <p class="rh-foot">Idrometri ARPAE, ultima misura alle ${when(newest)}${piena ? ` · <a href="#rvAll">tutti i fiumi ›</a>` : ""} · per decidere cosa fare fa fede <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo ER ↗</a></p>`;
   box.hidden = false;
 
   // fascia in testata solo con stazioni oltre soglia (l'allerta piene ha già la sua fascia)
