@@ -86,9 +86,10 @@ for (const r of RIVERS) {
   const place = PLACES.find(p => p.id === RIVER_PLACE[r.name]);
   pages.push({
     path: `/fiumi/${slug(r.name)}/`,
-    title: `Livello ${del(r.name)} in tempo reale · Cielo Romagna`,
-    description: `Livello idrometrico ${del(r.name)} in tempo reale ${from}: andamento delle ultime 48 ore, soglie di allerta e allerte ufficiali.`,
-    h1: `Livello ${del(r.name)} in tempo reale`,
+    // "oggi" e "sale o scende" sono le parole che si cercano durante le piene
+    title: `Livello ${del(r.name)} oggi, in tempo reale · Cielo Romagna`,
+    description: `Livello idrometrico ${del(r.name)} oggi, in tempo reale ${from}: se sale o scende, andamento delle ultime 48 ore, soglie di allerta e allerte ufficiali.`,
+    h1: `Livello ${del(r.name)} oggi, in tempo reale`,
     intro: `Livello idrometrico ${del(r.name)} in tempo reale ${from}, ripreso ogni 15 minuti da Allerta Meteo Emilia-Romagna: livello attuale, andamento delle ultime 48 ore e soglie di allerta. Le soglie idrometriche non sono un'allerta: per piene e allagamenti fa fede il bollettino ufficiale.`,
     data: { tab: "fiumi", river: r.name, ...(place ? { place: place.id } : {}) }
   });

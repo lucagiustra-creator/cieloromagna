@@ -396,6 +396,39 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
 .st .sv small { display: block; font-weight: 500; font-size: .68rem; color: var(--ink-faint); }
 .st .sv small.up { color: var(--warn); }
 
+/* ---------- Fiumi adesso: in cima alle previsioni. Compatta nei giorni tranquilli, si allarga in modalità piena ---------- */
+.rhome { padding: 0; overflow: hidden; }
+.rhome.piena { border-left: 5px solid var(--lvl); }
+.rh-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px 0; }
+.rh-head a { color: #fff; font-size: .82rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.rh-mine { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; align-items: end; padding: 10px 16px 0; color: inherit; text-decoration: none; }
+.rh-name { font-size: .92rem; color: var(--ink-soft); }
+.rh-name b { color: var(--ink); font-weight: 600; }
+.rh-v { grid-row: span 2; text-align: right; font-size: 2.1rem; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rh-v small { font-size: .9rem; font-weight: 500; color: var(--ink-soft); margin-left: 2px; }
+.rh-trend { font-size: 1.02rem; font-weight: 600; color: var(--tc, var(--ink)); }
+.rh-gap { grid-column: 1 / -1; font-size: .8rem; color: var(--ink-soft); margin-top: 4px; }
+.rh-gap b { color: var(--lvl); font-weight: 700; }
+.rh-chart { display: block; width: 100%; height: 64px; margin-top: 8px; }
+.rh-chart .thr { stroke-dasharray: 5 4; }
+.rh-cap { display: flex; justify-content: space-between; gap: 8px; padding: 3px 16px 0; font-size: .68rem; color: var(--ink-faint); }
+.rh-cap i { font-style: normal; color: var(--lvl); }
+.rh-hot { margin: 10px 16px 0; padding: 0; list-style: none; }
+.rh-hot li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: .86rem; }
+.rh-hot li > i { width: 8px; height: 8px; border-radius: 50%; background: var(--lvl); }
+.rh-hot li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rh-hot li em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rh-hot li em small { font-weight: 500; color: var(--ink-faint); margin-left: 6px; }
+.rh-strip { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; margin-top: 12px; border-top: 1px solid var(--line); }
+.rh-strip a { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; color: #fff; text-decoration: none; background: rgba(255,255,255,.08); }
+.rh-strip a.hot { background: color-mix(in srgb, var(--lvl) 28%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lvl) 60%, transparent); }
+.rh-strip a i { width: 7px; height: 7px; border-radius: 50%; background: var(--lvl); flex: none; }
+.rh-strip a i.na { background: none; box-shadow: inset 0 0 0 1.5px var(--ink-faint); }
+.rh-strip a b { font-weight: 700; color: var(--ink-faint); }
+.rh-strip a b.up { color: var(--warn); }
+.rh-foot { padding: 0 16px 12px; font-size: .72rem; color: var(--ink-faint); }
+.rh-foot a { color: inherit; }
+
 /* ---------- Accordo tra modelli (per esperti) ---------- */
 .trust { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: center; margin-bottom: 18px; }
 .trust .tb { grid-row: span 2; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 12px; border-radius: 12px; color: #fff; background: color-mix(in srgb, var(--lvl) 28%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 60%, transparent); text-align: center; line-height: 1.2; }
@@ -544,6 +577,7 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
   </div>
   <p class="fav-hint" id="favHint"></p>
   <a class="abanner" id="aBanner" href="#allerte" hidden></a>
+  <a class="abanner" id="rBanner" href="#fiumi" hidden></a>
 </header>
 
 <main class="container">
@@ -564,6 +598,7 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
 
   <!-- ===================== Scheda Previsioni ===================== -->
   <section class="tab" id="previsioni">
+    <section class="block card rhome" id="fiumiOra" aria-live="polite" hidden></section>
     <section class="block card" id="ore">
       <h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Le prossime 24 ore</h2>
       <p class="lead" id="hoursLead">Temperatura, probabilità di pioggia e raffiche di vento ora per ora.</p>
@@ -1069,6 +1104,7 @@ function renderSummaryChips() {
     $("sRiver").classList.toggle("hot", worst > 0);
     $("sRiver").innerHTML = `<i></i>${esc(f.fiume)} ${worst ? "oltre la soglia " + worst : "sotto le soglie"}${up ? ", in crescita" : ""} <small>misurato alle ${when(t)}</small>`;
   }
+  renderRiverHome();
 }
 
 /* ---------- Allerte ---------- */
@@ -1779,6 +1815,117 @@ function renderRivers() {
   $("rvSum").innerHTML = sum;
   // orari: misura (stazioni), acquisizione (Action), pagina (browser)
   $("stampRiv").innerHTML = `Ultima misura alle <b>${when(newest)}</b>${stale ? ` (${stale} ${stale === 1 ? "stazione ferma" : "stazioni ferme"} da più di 2 ore)` : ""} · acquisite dal sito ARPAE alle <b>${when(dati.scaricato)}</b> · pagina aggiornata alle <b>${clock(new Date(datiAt))}</b>`;
+}
+
+/* ---------- Fiumi adesso, in cima alle previsioni: il fiume della località e i 15 fiumi in una striscia ----------
+   Modalità piena (si accende da sola): una stazione oltre soglia, oppure allerta piene arancione o rossa oggi in Romagna.
+   Allora la scheda prende il colore, elenca le stazioni critiche e in testata compare la fascia "Fiumi oltre soglia". */
+const RV_BRIGHT = [null, "#f2c62f", "#f08a3c", "#ef4444"];
+
+// tendenza a parole: quanto è cambiato in 3 ore e da quante ore sale (dal minimo delle 24 ore) o scende (dal massimo)
+function rvTrend(s, st) {
+  if (!st) return { arrow: "", word: "nessun dato", dir: 0 };
+  if (st.anomala) return { arrow: "", word: "dato da verificare", dir: 0 };
+  const d = st.d;
+  if (Math.abs(d) < .05) return { arrow: "→", word: "stabile", dir: 0 };
+  const day = s.series.filter(p => p[0] >= st.t - 24 * 36e5);
+  const ext = day.reduce((m, p) => (d > 0 ? p[1] <= m[1] : p[1] >= m[1]) ? p : m, day[0]);
+  const h = Math.round((st.t - ext[0]) / 36e5), cm = Math.round(Math.abs(d) * 100);
+  const since = h >= 4 ? ` da ${h} ore` : "";
+  return d > 0
+    ? { arrow: d >= .15 ? "↑" : "↗", word: `in salita${since}, +${cm} cm in 3 ore`, dir: d >= .15 ? 2 : 1 }
+    : { arrow: "↘", word: `in calo${since}, −${cm} cm in 3 ore`, dir: -1 };
+}
+
+// freccia di un fiume intero: sale se sale una qualunque stazione (con le piene si muove prima la collina)
+function riverArrow(sts) {
+  if (!sts.length) return { a: "", up: false };
+  const maxD = Math.max(...sts.map(x => x.d));
+  if (maxD >= .15) return { a: "↑", up: true };
+  if (maxD >= .05) return { a: "↗", up: false };
+  return { a: sts.every(x => x.d <= -.03) ? "↘" : "→", up: false };
+}
+
+// grafico delle ultime 24 ore con le soglie già superate e la prossima, così si vede quanto manca
+function riverChart(s, st) {
+  const W = 320, H = 64, t1 = st.t, t0 = t1 - 24 * 36e5;
+  const pts = s.series.filter(p => p[0] >= t0);
+  if (pts.length < 2 || st.anomala) return "";
+  const thr = s.soglie.map((v, k) => ({ v, k: k + 1 })).filter(x => x.v != null);
+  const show = thr.filter((x, i) => x.v <= st.v || thr.findIndex(y => y.v > st.v) === i);
+  const vals = pts.map(p => p[1]).concat(show.map(x => x.v));
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (hi - lo < .3) { const m = (hi + lo) / 2; lo = m - .15; hi = m + .15; }
+  const pad = (hi - lo) * .1; lo -= pad; hi += pad;
+  const x = t => (t - t0) / (t1 - t0) * W, y = v => H - (v - lo) / (hi - lo) * H;
+  const line = pts.map(p => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+  const css = st.lvl ? RV_LEVELS[st.lvl].css : "#7cc4ff";
+  return `<svg class="rh-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="${x(pts[0][0]).toFixed(1)},${H} ${line} ${W},${H}" fill="${css}" opacity=".16"/>
+    ${show.map(t => `<line class="thr" x1="0" x2="${W}" y1="${y(t.v).toFixed(1)}" y2="${y(t.v).toFixed(1)}" stroke="${RV_LEVELS[t.k].css}" vector-effect="non-scaling-stroke"/>`).join("")}
+    <polyline points="${line}" fill="none" stroke="${css}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+  </svg>
+  <div class="rh-cap"><span>24 ore fa</span><span>${show.map(t => `<i style="--lvl:${RV_LEVELS[t.k].css}">- - soglia ${t.k}</i>`).join(" ")}</span><span>adesso</span></div>`;
+}
+
+function renderRiverHome() {
+  const box = $("fiumiOra"), ban = $("rBanner");
+  const all = (dati?.fiumi ?? []).flatMap(f => f.stazioni.map(s => ({ f: f.fiume, s, st: rvState(s) }))).filter(x => x.st);
+  if (!all.length) { box.hidden = true; ban.hidden = true; return; }
+  const over = all.filter(x => x.st.lvl > 0).sort((a, b) => b.st.lvl - a.st.lvl || b.st.d - a.st.d);
+  const idr = Math.max(0, ...(dati.oggi?.zone ?? []).map(z => ALERT[z.eventi?.idraulica]?.rank ?? 0));
+  const piena = over.length > 0 || idr >= 2;
+  const worst = over[0]?.st.lvl ?? 0;
+  const newest = Math.max(0, ...all.map(x => x.st.t));
+
+  // il fiume della località: la stazione più vicina che ha un dato (se no la più vicina di tutta la rete)
+  const dist = s => s.lat == null ? Infinity : Math.hypot((s.lat - sel.lat) * KY, (s.lon - sel.lon) * KX);
+  const pool = all.filter(x => x.f === sel.river && !x.st.stale);
+  const mine = (pool.length ? pool : all).reduce((a, b) => dist(b.s) < dist(a.s) ? b : a);
+  const { s, st } = mine, L = RV_LEVELS[st.lvl], tr = rvTrend(s, st);
+  const next = s.soglie.slice(st.lvl).find(v => v != null), nextK = s.soglie.indexOf(next) + 1;
+  const gap = st.anomala ? "Dato anomalo del sensore: salto improvviso che le altre stazioni non confermano"
+    : (st.stale ? `Dato fermo: misurato alle ${when(st.t)} · ` : "")
+      + (st.lvl ? `<b>Oltre la soglia ${st.lvl}</b>${next != null ? ` · soglia ${nextK} a ${fmt2(next)} m` : ""}`
+        : next != null ? `Soglia ${nextK} a ${fmt2(next)} m: mancano ${fmt2(next - st.v)} m` : "Stazione senza soglie ufficiali");
+
+  // in modalità piena: stazioni oltre soglia, o se c'è solo l'allerta quelle che salgono di più
+  const hot = (over.length ? over : all.filter(x => !x.st.anomala && x.st.d >= .15).sort((a, b) => b.st.d - a.st.d)).slice(0, 5);
+  const badge = over.length ? `${over.length} ${over.length === 1 ? "stazione" : "stazioni"} oltre soglia`
+    : idr >= 2 ? `Allerta piene ${Object.values(ALERT).find(a => a.rank === idr).adj}` : "";
+
+  box.classList.toggle("piena", piena);
+  box.style.setProperty("--lvl", over.length ? RV_LEVELS[worst].css : idr >= 2 ? ALERT[idr === 3 ? "red" : "orange"].css : "transparent");
+  box.innerHTML = `
+    <div class="rh-head"><h2 class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 13q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 18q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/></svg>Fiumi adesso</h2>
+      ${piena ? `<span class="rv-badge" style="--lvl:${over.length ? RV_LEVELS[worst].css : ALERT[idr === 3 ? "red" : "orange"].css}"><i></i>${badge}</span>` : `<a href="#fiumi">Tutti i fiumi ›</a>`}</div>
+    <a class="rh-mine" href="#fiumi" data-river="${esc(mine.f)}" style="--lvl:${L.css}">
+      <span class="rh-name"><b>${esc(mine.f)}</b> a ${esc(s.name)}</span>
+      <span class="rh-v">${st.anomala ? "—" : fmt2(st.v)}<small>m</small></span>
+      <span class="rh-trend" style="--tc:${tr.dir === 2 ? "var(--warn)" : tr.dir < 0 ? "var(--ink-soft)" : "var(--ink)"}">${tr.arrow} ${tr.word[0].toUpperCase() + tr.word.slice(1)}</span>
+      <span class="rh-gap">${gap}</span>
+    </a>
+    ${riverChart(s, st)}
+    ${piena && hot.length ? `<ul class="rh-hot">${hot.map(x => {
+      const t = rvTrend(x.s, x.st);
+      return `<li style="--lvl:${RV_LEVELS[x.st.lvl].css}"><i></i><span><b>${esc(x.f)}</b> a ${esc(x.s.name)}</span><em>${fmt2(x.st.v)} m ${t.arrow}<small>${x.st.lvl ? "soglia " + x.st.lvl : "+" + Math.round(x.st.d * 100) + " cm in 3 h"}</small></em></li>`;
+    }).join("")}</ul>` : ""}
+    <nav class="rh-strip" aria-label="Stato dei fiumi">${dati.fiumi.map(f => {
+      const sts = f.stazioni.map(rvState).filter(x => x && !x.anomala);
+      const w = Math.max(0, ...sts.map(x => x.lvl)), ar = riverArrow(sts);
+      const label = `${f.fiume}: ${!sts.length ? "nessun dato" : w ? "oltre la soglia " + w : "sotto le soglie"}${ar.up ? ", in crescita" : ""}`;
+      return `<a href="#fiumi" data-river="${esc(f.fiume)}" class="${w ? "hot" : ""}" style="--lvl:${RV_LEVELS[w].css}" title="${esc(label)}" aria-label="${esc(label)}"><i class="${sts.length ? "" : "na"}"></i>${esc(RIVER_SHORT[f.fiume] ?? f.fiume)}${ar.a ? `<b class="${ar.up ? "up" : ""}">${ar.a}</b>` : ""}</a>`;
+    }).join("")}</nav>
+    <p class="rh-foot">Idrometri ARPAE, ultima misura alle ${when(newest)}${piena ? ` · <a href="#fiumi">tutti i fiumi ›</a>` : ""} · per decidere cosa fare fa fede <a href="https://allertameteo.regione.emilia-romagna.it/" target="_blank" rel="noopener">Allerta Meteo ER ↗</a></p>`;
+  box.hidden = false;
+
+  // fascia in testata solo con stazioni oltre soglia (l'allerta piene ha già la sua fascia)
+  if (!over.length) { ban.hidden = true; return; }
+  const byRiver = [...new Map(over.map(x => [x.f, x])).values()];
+  ban.style.setProperty("--ab", RV_BRIGHT[worst]);
+  ban.dataset.river = byRiver[0].f;
+  ban.innerHTML = `<b>Fiumi oltre soglia</b><span>${esc(listIt(byRiver.slice(0, 3).map(x => `${x.f} a ${x.s.name} (soglia ${x.st.lvl}${rvTrend(x.s, x.st).dir > 0 ? ", sale" : ""})`)))}${byRiver.length > 3 ? ` e altri ${byRiver.length - 3}` : ""}</span><em>Livelli ›</em>`;
+  ban.hidden = false;
 }
 
 async function loadDati() {
