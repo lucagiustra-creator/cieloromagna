@@ -3,14 +3,18 @@
 // I cron sono in UTC (4 e 5): parte solo quello che a Roma cade alle 6, così vale con ora legale e solare.
 // Secret GITHUB_TOKEN: token fine-grained solo sul repo cieloromagna, permesso Actions in scrittura.
 //
+// Dal 22/11 fa anche da orologio della pubblicazione: le schedule "ogni 15 minuti" di pubblica.yml in pratica
+// partivano ogni 4-8 ore, troppo per i livelli dei fiumi e per gli avvisi di soglia. Il cron */15 lancia
+// pubblica.yml; quelle di GitHub restano come riserva (il gruppo di concurrency "pages" evita i doppioni).
+//
 // Fa anche da ripiego per Open-Meteo: il 14/11 i runner GitHub non riuscivano a collegarsi ad api.open-meteo.com
 // (timeout per ore) mentre da altre reti rispondeva. Su cieloromagna.it/om/v1/forecast?... il Worker gira la
 // richiesta a Open-Meteo dalla rete Cloudflare. Serve l'header x-chiave uguale al secret OM_CHIAVE (che sta anche
 // nei secret del repo), così non diventa un proxy aperto.
 const REPO = "lucagiustra-creator/cieloromagna";
 
-async function lancia(env) {
-  const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/telegram.yml/dispatches`, {
+async function lancia(env, workflow = "telegram.yml", inputs = { modo: "mattina" }) {
+  const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${env.GITHUB_TOKEN}`,
@@ -18,7 +22,7 @@ async function lancia(env) {
       "user-agent": "cieloromagna-sveglia",
       "x-github-api-version": "2022-11-28"
     },
-    body: JSON.stringify({ ref: "main", inputs: { modo: "mattina" } })
+    body: JSON.stringify({ ref: "main", inputs })
   });
   if (r.status !== 204) throw new Error(`GitHub ha risposto ${r.status}: ${await r.text()}`);
 }
@@ -33,6 +37,10 @@ async function openMeteo(request, env) {
 
 export default {
   async scheduled(event, env, ctx) {
+    if (event.cron === "*/15 * * * *") {
+      await lancia(env, "pubblica.yml", {});
+      return console.log("pubblica.yml lanciato");
+    }
     const ora = new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", hour: "numeric", hourCycle: "h23" })
       .format(new Date(event.scheduledTime));
     if (Number(ora) !== 6) return console.log(`a Roma sono le ${ora}, non è il mio turno`);
