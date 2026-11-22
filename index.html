@@ -60,7 +60,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { scroll-behavior: smooth; scroll-padding-top: 128px; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
 button, select { font: inherit; color: inherit; }
@@ -77,7 +77,9 @@ button, select { font: inherit; color: inherit; }
 .lead.plain { border: 0; padding: 0; color: var(--ink-soft); }
 
 /* ---------- Barra in alto ---------- */
-.nav { position: sticky; top: 0; z-index: 1100; background: var(--nav-bg); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); border-bottom: 1px solid rgba(255,255,255,.08); }
+/* lo sfocato sta su ::before: un backdrop-filter sulla barra farebbe da riferimento alle schede in position: fixed (telefono) */
+.nav { position: sticky; top: 0; z-index: 1100; border-bottom: 1px solid rgba(255,255,255,.08); }
+.nav::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--nav-bg); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); }
 .nav .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
 .brand svg { width: 32px; height: 32px; }
@@ -179,18 +181,18 @@ h1 { margin: 0; font-family: "Inter", var(--font); font-weight: 600; font-size: 
 .schip small { font-weight: 500; color: var(--ink-faint); }
 .sum-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px 13px; font-size: .75rem; color: var(--ink-faint); border-top: 1px solid var(--line); }
 
-/* ---------- Schede: in alto sotto la barra su schermo largo, in basso come un'app sul telefono ---------- */
-.tabs { position: sticky; top: 56px; z-index: 1050; display: flex; gap: 4px; margin-top: 14px; padding: 4px; background: var(--nav-bg); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid var(--glass-line); border-radius: 14px; }
-.tabs a { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px; border-radius: 10px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: .92rem; }
+/* ---------- Schede: nella barra in alto su schermo largo, in basso come un'app sul telefono ---------- */
+.tabs { display: flex; gap: 2px; margin-left: auto; padding: 3px; background: rgba(255,255,255,.07); border: 1px solid var(--glass-line); border-radius: 12px; }
+.tabs a { position: relative; flex: none; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 6px 14px; border-radius: 9px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: .88rem; }
 .tabs a:hover { background: var(--tint); }
 .tabs a[aria-current="page"] { background: rgba(255,255,255,.22); color: #fff; }
-.tabs svg { width: 20px; height: 20px; flex: none; }
+.tabs svg { width: 18px; height: 18px; flex: none; }
 .tdot { width: 8px; height: 8px; border-radius: 50%; background: var(--lvl); display: none; }
 .tabs a.alert .tdot { display: inline-block; }
 @media (max-width: 760px) {
-  html { scroll-padding-top: 72px; }
-  .tabs { position: fixed; top: auto; left: 0; right: 0; bottom: 0; margin: 0; border-radius: 0; border: 0; border-top: 1px solid var(--glass-line); background: rgba(10,22,40,.42); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
-  .tabs a { flex-direction: column; gap: 3px; font-size: .7rem; padding: 6px; }
+  .tabs { position: fixed; z-index: 1050; left: 0; right: 0; bottom: 0; gap: 4px; margin: 0; border-radius: 0; border: 0; border-top: 1px solid var(--glass-line); background: rgba(10,22,40,.42); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tabs a { flex: 1; flex-direction: column; gap: 3px; font-size: .7rem; padding: 6px; }
+  .tabs svg { width: 20px; height: 20px; }
   .tabs a[aria-current="page"] { background: none; color: #fff; font-weight: 700; }
   .tabs a:not([aria-current]) { opacity: .7; }
   .tdot { position: absolute; top: 4px; left: calc(50% + 8px); }
@@ -576,6 +578,11 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
       <svg viewBox="0 0 128 128" aria-hidden="true"><defs><linearGradient id="crnbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050B1F"/><stop offset="1" stop-color="#0B2547"/></linearGradient><linearGradient id="crnsun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC94A"/><stop offset="1" stop-color="#FF3D8B"/></linearGradient><linearGradient id="crnln" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#00E5FF"/><stop offset="1" stop-color="#8B5CFF"/></linearGradient><mask id="crncut"><rect width="128" height="128" fill="#fff"/><rect x="0" y="45" width="128" height="2.2" fill="#000"/><rect x="0" y="51" width="128" height="3" fill="#000"/><rect x="0" y="57.5" width="128" height="3.8" fill="#000"/></mask><filter id="crnglow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="crnclip"><rect width="128" height="128" rx="30"/></clipPath></defs><g clip-path="url(#crnclip)"><rect width="128" height="128" fill="url(#crnbg)"/><g fill="#9FC8FF" opacity=".55"><circle cx="20" cy="22" r="1"/><circle cx="38" cy="14" r=".8"/><circle cx="54" cy="30" r=".7"/><circle cx="14" cy="44" r=".7"/></g><circle cx="84" cy="46" r="22" fill="url(#crnsun)" mask="url(#crncut)"/><path d="M-2 84 L22 62 L36 72 L56 48 L74 66 L92 56 L130 84 V130 H-2Z" fill="#081A35"/><path d="M-2 84 L22 62 L36 72 L56 48 L74 66 L92 56 L130 84" fill="none" stroke="url(#crnln)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" filter="url(#crnglow)"/><path d="M36 72 C40 80 30 84 38 90 S60 96 66 104" fill="none" stroke="#00E5FF" stroke-width="3" stroke-linecap="round" opacity=".9"/><g fill="none" stroke-linecap="round"><path d="M-2 104 Q16 98 32 104 T64 104 T96 104 T130 104" stroke="#00E5FF" stroke-width="3.2" opacity=".95"/><path d="M-2 113 Q16 107 32 113 T64 113 T96 113 T130 113" stroke="#3E8BFF" stroke-width="2.6" opacity=".8"/><path d="M-2 121 Q16 115 32 121 T64 121 T96 121 T130 121" stroke="#8B5CFF" stroke-width="2.2" opacity=".7"/></g><g fill="none" stroke="#00E5FF"><circle cx="38" cy="90" r="9" stroke-width="1.6" opacity=".55"/><circle cx="38" cy="90" r="15" stroke-width="1.2" opacity=".28"/></g><circle cx="38" cy="90" r="4.6" fill="#00E5FF" filter="url(#crnglow)"/><circle cx="38" cy="90" r="1.8" fill="#fff"/></g></svg>
       <span><b>Cielo<span>Romagna</span></b><small>dalla costa all'Appennino</small></span>
     </a>
+    <nav class="tabs" id="tabs" aria-label="Sezioni">
+      <a href="#previsioni" data-tab="previsioni"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="15" cy="8" r="4" fill="#f2a33a"/><path d="M6 19h11a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.4 1.2A3.4 3.4 0 0 0 6 19z" fill="currentColor"/></svg><span>Previsioni</span></a>
+      <a href="#allerte" data-tab="allerte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.2v.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Allerte</span><i class="tdot" id="dotAllerte"></i></a>
+      <a href="#fiumi" data-tab="fiumi"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 13q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 18q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/></g></svg><span>Fiumi</span><i class="tdot" id="dotFiumi"></i></a>
+    </nav>
     <button class="install" type="button" id="install" hidden>📲 Installa</button>
   </div>
 </nav>
@@ -606,11 +613,6 @@ details.more > .sub { padding: 0 4px; text-shadow: 0 1px 10px rgba(0,0,0,.18); }
     <div class="sum-foot"><span id="updated">—</span><button class="linkbtn" type="button" id="reload">Aggiorna ›</button></div>
   </section>
 
-  <nav class="tabs" id="tabs" aria-label="Sezioni">
-    <a href="#previsioni" data-tab="previsioni"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="15" cy="8" r="4" fill="#f2a33a"/><path d="M6 19h11a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.4 1.2A3.4 3.4 0 0 0 6 19z" fill="currentColor"/></svg><span>Previsioni</span></a>
-    <a href="#allerte" data-tab="allerte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.2v.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Allerte</span><i class="tdot" id="dotAllerte"></i></a>
-    <a href="#fiumi" data-tab="fiumi"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 13q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/><path d="M3 18q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0"/></g></svg><span>Fiumi</span><i class="tdot" id="dotFiumi"></i></a>
-  </nav>
 
   <!-- ===================== Scheda Previsioni ===================== -->
   <section class="tab" id="previsioni">
@@ -1997,7 +1999,7 @@ function route(scroll) {
   if (!scroll) return;
   // dentro una scheda si va all'elemento; cambiando scheda si torna all'inizio solo se si era più in basso
   if (target && !TABS.includes(id)) { target.scrollIntoView({ block: "start" }); return; }
-  const top = $(tab).getBoundingClientRect().top + scrollY - 140;
+  const top = $(tab).getBoundingClientRect().top + scrollY - 72;
   if (scrollY > top) scrollTo({ top, behavior: "auto" });
 }
 document.addEventListener("click", e => {
