@@ -1,10 +1,9 @@
 name: Pubblica sito e dati ARPAE
 
-# Ogni 15 minuti (in teoria: le schedule di GitHub spesso arrivano ogni 2-4 ore) scarica allerte e livelli dei fiumi da Allerta Meteo ER e ripubblica il sito con dati.json accanto;
-# gira anche a ogni push su main, così le modifiche alla pagina vanno online subito.
+# Ogni 15 minuti scarica allerte e livelli dei fiumi da Allerta Meteo ER e ripubblica il sito con dati.json accanto.
+# Il ritmo lo dà il Worker Cloudflare cieloromagna-sveglia (cron */15 → workflow_dispatch): niente schedule GitHub,
+# che arrivavano ogni 2-4 ore e raddoppiavano i giri. Gira anche a ogni push su main, così le modifiche vanno online subito.
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   push:
     branches: [main]
   workflow_dispatch:
@@ -24,7 +23,7 @@ jobs:
     timeout-minutes: 5
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy2.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,7 +49,18 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      # Subito dopo l'upload l'API di GitHub a volte non vede ancora l'artifact ("No artifacts named github-pages"):
+      # si aspetta qualche secondo e, se il deploy fallisce lo stesso, si riprova una volta.
+      - name: Attendi che l'artifact sia visibile
+        run: sleep 10
       - id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Attendi prima di riprovare
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 20
+      - id: deploy2
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
       - name: Segnala dati fermi
         if: steps.dati.outcome == 'failure'
